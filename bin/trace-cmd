@@ -1,0 +1,46 @@
+#!/bin/bash
+DEBUGFS=`grep debugfs /proc/mounts | awk '{ print $2; }'`
+TRACEDIR=$DEBUGFS/tracing
+
+function trace_event() {
+	echo $1 >> $TRACEDIR/set_event
+}
+
+# clear everything
+echo "" > $TRACEDIR/set_ftrace_pid
+echo 0 > $TRACEDIR/options/userstacktrace
+echo 0 > $TRACEDIR/options/stacktrace
+
+
+# trace event
+echo "" > $TRACEDIR/set_event
+#    pause
+trace_event syscalls:sys_exit_pause
+trace_event syscalls:sys_enter_pause
+#    sleep
+trace_event syscalls:sys_exit_nanosleep
+trace_event syscalls:sys_enter_nanosleep
+trace_event syscalls:sys_exit_clock_nanosleep
+trace_event syscalls:sys_enter_clock_nanosleep
+#    wakeup
+trace_event sched:sched_wakeup_new
+trace_event sched:sched_wakeup
+#    exit
+trace_event sched:sched_process_exit
+#    futex
+trace_event syscalls:sys_enter_futex
+trace_event syscalls:sys_exit_futex
+#    scheduler switch
+trace_event sched:sched_switch
+
+
+# clear everything
+echo nop > $TRACEDIR/current_tracer
+echo 0 > $TRACEDIR/tracing_on
+echo 0 > $TRACEDIR/trace
+
+
+
+# run
+echo "taskset -c 0 $*"
+taskset -c 0 $*
