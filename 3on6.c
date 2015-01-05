@@ -6,7 +6,7 @@
 
 #define NTHREAD 3
 #define NLOCK 6
-#define RUNNING_SEC 300
+#define RUNNING_SEC 400
 #define FPRINT(msg, args...) printf("3on6 \t" msg, ## args);
 
 pthread_t tids[NTHREAD];
@@ -27,15 +27,20 @@ void* tfn(void *arg) {
 	FPRINT("Thread %d: starts.\n", order);
 	while (working) {
 		int lock_id = rand() % NLOCK;
-		int sleeptime[2] = { (rand() % 5), (rand() % 10 > 8 ? 10 : (rand() % 5))  };
+		int _sleeptime[2] = { (rand() % 5), (rand() % 10 > 8 ? 10 : (rand() % 5))  };
+		unsigned long long sleeptime[2];
+		unsigned long long i;
+
+		sleeptime[0] = _sleeptime[0] * 0x7FFFFFF;
+		sleeptime[1] = _sleeptime[1] * 0x7FFFFFF;
 		
-		FPRINT("Thread %d: sleeps for %ds.\n", order, sleeptime[0]);
-		sleep(sleeptime[0]);
+		FPRINT("Thread %d: prepares for %ds.\n", order, _sleeptime[0]);
+		for (i = 0; i < sleeptime[0]; ++i) {++i; --i; }
 		
 		FPRINT("Thread %d: wants to work.\n", order);
 		pthread_mutex_lock(&(locks[lock_id]));
-		FPRINT("Thread %d: works for %ds.\n", order, sleeptime[1]);
-		sleep(sleeptime[1]);
+		FPRINT("Thread %d: works for %ds.\n", order, _sleeptime[1]);
+		for (i = 0; i < sleeptime[1]; ++i) {++i; --i; }
 		FPRINT("Thread %d: finishes.\n", order);
 		pthread_mutex_unlock(&(locks[lock_id]));
 	}

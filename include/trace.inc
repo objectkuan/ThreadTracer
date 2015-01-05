@@ -24,7 +24,6 @@ const char *find_debugfs(void)
 	if ((fp = fopen("/proc/mounts","r")) == NULL) {
 		perror("/proc/mounts");
 		return NULL;
-
 	}
 
 	while (fscanf(fp, "%*s %"
@@ -33,21 +32,18 @@ const char *find_debugfs(void)
 				debugfs, type) == 2) {
 		if (strcmp(type, "debugfs") == 0)
 			break;
-
 	}
 	fclose(fp);
 
 	if (strcmp(type, "debugfs") != 0) {
 		fprintf(stderr, "debugfs not mounted");
 		return NULL;
-
 	}
 
 	strcat(debugfs, "/tracing/");
 	debugfs_found = 1;
 
 	return debugfs;
-
 }
 
 const char *tracing_file(const char *file_name)
@@ -55,7 +51,6 @@ const char *tracing_file(const char *file_name)
 	static char trace_file[MAX_PATH+1];
 	snprintf(trace_file, MAX_PATH, "%s/%s", find_debugfs(), file_name);
 	return trace_file;
-
 }
 
 void write_ftrace_file(const char* filename, const char* value) {

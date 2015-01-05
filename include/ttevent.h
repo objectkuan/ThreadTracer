@@ -1,14 +1,24 @@
 #ifndef TT_EVENT_
 #define TT_EVENT_
 
+#include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
 #include <assert.h>
-#include "ttthread_state.h"
+#include <stdlib.h>
 
-#define FPRINT(msg, args...) printf("[Filter] \t" msg, ## args);
+// Debugging
+#define print_event(msg, args...) printf("[Filter] \t" msg, ## args);
+//#define print_event(msg, args...)
 
-// Events:
+
+/**
+ * Events:
+ *
+ * Each event type has a struct to store its details. And all event types are
+ * collected into a struct called `thread_event`.
+ *
+ */
 struct thread_create {
 	uint64_t parent_thread_id;
 	uint64_t child_thread_id;
@@ -44,6 +54,11 @@ struct thread_wakeup {
 	uint64_t timestamp;
 }; // sched_wakeup
 
+struct thread_exit {
+	uint64_t thread_id;
+	uint64_t timestamp;
+}; // sched_process_exit
+
 typedef enum {
 	THREAD_CREATE,
 	THREAD_WAIT_FUTEX,
@@ -51,8 +66,9 @@ typedef enum {
 	THREAD_RELEASE_FUTEX,
 	THREAD_SLEEP,
 	THREAD_WAKEUP,
+	THREAD_EXIT,
 } event_type;
-struct thread_event {
+typedef struct thread_event {
 	event_type type;
 	union {
 		struct thread_create thread_create;
@@ -61,14 +77,33 @@ struct thread_event {
 		struct thread_release_futex thread_release_futex;
 		struct thread_sleep thread_sleep;
 		struct thread_wakeup thread_wakeup;
+		struct thread_exit thread_exit;
 	} event;
-}; // the collection of events
+} thread_event; // the collection of events
 
-int compare_traced_function(const char *buf, const char *name);
-void parse_event(const char* buf, struct thread_event* event);
 
-static inline int in_hex_range(char c) {
-	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
-}
+// Print a thread event to stdout
+void print_thread_event(thread_event* event);
+
+
+/* 
+ * Event manager:
+ * 
+ * All events captured are stored in a linked list. They will be used later to
+ * calculate the performance problem causes, or do something else.
+ *
+ */
+typedef struct event_node_t {
+	thread_event* event;
+	struct event_node_t* next;
+} event_node_t;
+typedef struct event_linked_list_t {
+	event_node_t* head;
+	event_node_t* tail;
+	int length;
+} event_linked_list_t;
+event_linked_list_t* init_event_linked_list();
+void insert_event_node_to_tail(event_linked_list_t* list, thread_event* event);
+event_node_t* create_thread_event(event_linked_list_t* list);
 
 #endif

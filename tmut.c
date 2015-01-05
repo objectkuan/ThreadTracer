@@ -1,6 +1,8 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <syscall.h>
+#include <inttypes.h>
+#include <time.h>
 
 #include "trace.inc"
 
@@ -10,10 +12,18 @@ pthread_mutex_t lock;
 
 void* tfn(void *arg) {
 	long sid = syscall(SYS_gettid);
+	unsigned long long i;
+	unsigned long long k;
 	append_pid_filter(sid);
 
 	pthread_mutex_lock(&lock);
-	sleep(4);
+
+	k = (unsigned)time(NULL);
+	printf("%" PRId64 "\n", k);
+	sleep(3);
+	k = ((unsigned)time(NULL)) - k;
+	printf("%" PRId64 "\n", k);
+	fflush(stdout);
 	pthread_mutex_unlock(&lock);
 	return NULL;
 }
@@ -40,11 +50,11 @@ int main(void) {
 		sleep(1);
 	}
 
-	sleep(10);
-	write_ftrace_file("tracing_on", "0");
+	sleep(5);
 	for (i = 0; i < NTHREAD; i++) {
 		pthread_join(tid[i], NULL);
 	}
+	write_ftrace_file("tracing_on", "0");
 	
 	pthread_mutex_destroy(&lock);
 

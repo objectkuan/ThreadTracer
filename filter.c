@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "ttevent.h"
+#include "ttparser.h"
 
 #include "trace.inc"
 
@@ -11,8 +11,9 @@ void onexit (void) {
 #define MAX_LINE 2048
 
 void process(const char* buf) {
-	struct thread_event event;
-	parse_event(buf, &event);
+	parse_event(buf);
+	//printf("%s", buf);
+	//fflush(stdout);
 }
 
 int main() {
@@ -21,8 +22,8 @@ int main() {
 	
 	atexit (onexit);
 	//if ((fd_trace_pipe = fopen(tracing_file("trace_pipe"), "r")) == NULL) {
-	if ((fd_trace_pipe = fopen("/home/hjq/playground/mutex/documents/test-1/filter_trace.log", "r")) == NULL) {
-	//if ((fd_trace_pipe = fopen("/home/hjq/playground/mutex/trace.log", "r")) == NULL) {
+	//if ((fd_trace_pipe = fopen("/home/hjq/playground/mutex/documents/test-1/filter_trace.log", "r")) == NULL) {
+	if ((fd_trace_pipe = fopen("/home/hjq/playground/mutex/bin/trace.log", "r")) == NULL) {
 		perror("fail to read sample_pipe");
 		exit(1);
 	}
