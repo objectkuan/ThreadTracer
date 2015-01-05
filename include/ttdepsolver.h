@@ -15,7 +15,8 @@
  *    including GET_FUTEX, RELEASE_FUETX, WAIT_FUTEX.
  */
 
-#define MAX_THREAD_EVENTS 1024
+// TODO: may overflow
+#define MAX_THREAD_EVENTS 2048
 typedef struct thread_event_list {
 	uint64_t thread_id;
 	int amount;

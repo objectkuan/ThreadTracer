@@ -29,7 +29,8 @@ void insert_thread_event(event_node_t* node) {
 	// find the thread_id
 	switch(node->event->type) {
 		case THREAD_CREATE:
-			thread_id = node->event->event.thread_create.child_thread_id;
+			/*thread_id = node->event->event.thread_create.child_thread_id;*/
+			return;
 			break;
 		case THREAD_WAIT_FUTEX:
 			thread_id = node->event->event.thread_wait_futex.thread_id;
@@ -41,10 +42,12 @@ void insert_thread_event(event_node_t* node) {
 			thread_id = node->event->event.thread_release_futex.thread_id;
 			break;
 		case THREAD_SLEEP:
-			thread_id = node->event->event.thread_sleep.thread_id;
+			/*thread_id = node->event->event.thread_sleep.thread_id;*/
+			return;
 			break;
 		case THREAD_WAKEUP:
-			thread_id = node->event->event.thread_wakeup.to_thread_id;
+			/*thread_id = node->event->event.thread_wakeup.to_thread_id;*/
+			return;
 			break;
 		case THREAD_EXIT:
 			thread_id = node->event->event.thread_exit.thread_id;
@@ -74,7 +77,6 @@ void insert_futex_event(event_node_t* node) {
 		case THREAD_SLEEP:
 		case THREAD_WAKEUP:
 		case THREAD_EXIT:
-			break;
 		default:
 			assert(0);
 	}
@@ -137,6 +139,6 @@ void dump_all_event_lists() {
 		}
 	}
 	printf("-------------------------------\n");
-	printf("===============================\n");
+	printf("=============================\n");
 	fflush(stdout);
 }

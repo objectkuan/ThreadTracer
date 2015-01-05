@@ -1,0 +1,67 @@
+            tmut-6362  [000] .... 41573.487772: sys_nanosleep(rqtp: 7fffa59d9da0, rmtp: 7fffa59d9da0)
+            tmut-6362  [000] d... 41573.487779: sched_switch: prev_comm=tmut prev_pid=6362 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+          <idle>-0     [000] dNh. 41574.488434: sched_wakeup: comm=tmut pid=6362 prio=120 success=1 target_cpu=000
+          <idle>-0     [000] d... 41574.488438: sched_switch: prev_comm=swapper/0 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=tmut next_pid=6362 next_prio=120
+            tmut-6362  [000] .... 41574.488440: sys_nanosleep -> 0x0
+            tmut-6362  [000] d... 41574.488475: sched_wakeup_new: comm=tmut pid=6371 prio=120 success=1 target_cpu=000
+            tmut-6362  [000] .... 41574.488479: sys_nanosleep(rqtp: 7fffa59d9da0, rmtp: 7fffa59d9da0)
+            tmut-6362  [000] d... 41574.488481: sched_switch: prev_comm=tmut prev_pid=6362 prev_prio=120 prev_state=S ==> next_comm=tmut next_pid=6371 next_prio=120
+            tmut-6371  [000] d... 41574.488506: sched_wakeup: comm=rcuos/0 pid=8 prio=120 success=1 target_cpu=005
+            tmut-6371  [000] .... 41574.488510: sys_nanosleep(rqtp: 7f7f11b7ed50, rmtp: 7f7f11b7ed50)
+            tmut-6371  [000] d... 41574.488515: sched_switch: prev_comm=tmut prev_pid=6371 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+          <idle>-0     [000] dNh. 41575.489139: sched_wakeup: comm=tmut pid=6362 prio=120 success=1 target_cpu=000
+          <idle>-0     [000] d... 41575.489143: sched_switch: prev_comm=swapper/0 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=tmut next_pid=6362 next_prio=120
+            tmut-6362  [000] .... 41575.489145: sys_nanosleep -> 0x0
+            tmut-6362  [000] d... 41575.489178: sched_wakeup_new: comm=tmut pid=6380 prio=120 success=1 target_cpu=000
+            tmut-6362  [000] .... 41575.489181: sys_nanosleep(rqtp: 7fffa59d9da0, rmtp: 7fffa59d9da0)
+            tmut-6362  [000] d... 41575.489183: sched_switch: prev_comm=tmut prev_pid=6362 prev_prio=120 prev_state=S ==> next_comm=tmut next_pid=6380 next_prio=120
+            tmut-6380  [000] d... 41575.489209: sched_wakeup: comm=rcuos/0 pid=8 prio=120 success=1 target_cpu=001
+            tmut-6380  [000] .... 41575.489210: sys_futex(uaddr: 6023e0, op: 80, val: 2, utime: 0, uaddr2: 6023e0, val3: e)
+            tmut-6380  [000] d... 41575.489216: sched_switch: prev_comm=tmut prev_pid=6380 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+          <idle>-0     [000] dNh. 41576.489843: sched_wakeup: comm=tmut pid=6362 prio=120 success=1 target_cpu=000
+          <idle>-0     [000] d... 41576.489848: sched_switch: prev_comm=swapper/0 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=tmut next_pid=6362 next_prio=120
+            tmut-6362  [000] .... 41576.489849: sys_nanosleep -> 0x0
+            tmut-6362  [000] d... 41576.489879: sched_wakeup_new: comm=tmut pid=6390 prio=120 success=1 target_cpu=000
+            tmut-6362  [000] .... 41576.489883: sys_nanosleep(rqtp: 7fffa59d9da0, rmtp: 7fffa59d9da0)
+            tmut-6362  [000] d... 41576.489885: sched_switch: prev_comm=tmut prev_pid=6362 prev_prio=120 prev_state=S ==> next_comm=tmut next_pid=6390 next_prio=120
+            tmut-6390  [000] d... 41576.489908: sched_wakeup: comm=rcuos/0 pid=8 prio=120 success=1 target_cpu=002
+            tmut-6390  [000] .... 41576.489909: sys_futex(uaddr: 6023e0, op: 80, val: 2, utime: 0, uaddr2: 6023e0, val3: e)
+            tmut-6390  [000] d... 41576.489915: sched_switch: prev_comm=tmut prev_pid=6390 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+          <idle>-0     [000] dNh. 41577.490541: sched_wakeup: comm=tmut pid=6362 prio=120 success=1 target_cpu=000
+          <idle>-0     [000] d... 41577.490544: sched_switch: prev_comm=swapper/0 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=tmut next_pid=6362 next_prio=120
+            tmut-6362  [000] .... 41577.490546: sys_nanosleep -> 0x0
+            tmut-6362  [000] .... 41577.490549: sys_nanosleep(rqtp: 7fffa59d9da0, rmtp: 7fffa59d9da0)
+            tmut-6362  [000] d... 41577.490551: sched_switch: prev_comm=tmut prev_pid=6362 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+          <idle>-0     [000] dNh. 41578.490979: sched_wakeup: comm=tmut pid=6371 prio=120 success=1 target_cpu=000
+          <idle>-0     [000] d... 41578.490983: sched_switch: prev_comm=swapper/0 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=tmut next_pid=6371 next_prio=120
+            tmut-6371  [000] .... 41578.490986: sys_nanosleep -> 0x0
+            tmut-6371  [000] .... 41578.490990: sys_futex(uaddr: 6023e0, op: 81, val: 1, utime: 12e, uaddr2: 0, val3: e)
+            tmut-6371  [000] d... 41578.490994: sched_wakeup: comm=tmut pid=6380 prio=120 success=1 target_cpu=000
+            tmut-6371  [000] .... 41578.490995: sys_futex -> 0x1
+            tmut-6371  [000] .... 41578.491010: sched_process_exit: comm=tmut pid=6371 prio=120
+            tmut-6371  [000] d... 41578.491022: sched_switch: prev_comm=tmut prev_pid=6371 prev_prio=120 prev_state=x ==> next_comm=tmut next_pid=6380 next_prio=120
+            tmut-6380  [000] .... 41578.491024: sys_futex -> 0x0
+            tmut-6380  [000] .... 41578.491027: sys_nanosleep(rqtp: 7f7f1137dd50, rmtp: 7f7f1137dd50)
+            tmut-6380  [000] d... 41578.491032: sched_switch: prev_comm=tmut prev_pid=6380 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+          <idle>-0     [000] dNh. 41582.493498: sched_wakeup: comm=tmut pid=6380 prio=120 success=1 target_cpu=000
+          <idle>-0     [000] d... 41582.493502: sched_switch: prev_comm=swapper/0 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=tmut next_pid=6380 next_prio=120
+            tmut-6380  [000] .... 41582.493505: sys_nanosleep -> 0x0
+            tmut-6380  [000] .... 41582.493508: sys_futex(uaddr: 6023e0, op: 81, val: 1, utime: 8, uaddr2: 0, val3: e)
+            tmut-6380  [000] d... 41582.493513: sched_wakeup: comm=tmut pid=6390 prio=120 success=1 target_cpu=000
+            tmut-6380  [000] .... 41582.493513: sys_futex -> 0x1
+            tmut-6380  [000] .... 41582.493529: sched_process_exit: comm=tmut pid=6380 prio=120
+            tmut-6380  [000] d... 41582.493542: sched_switch: prev_comm=tmut prev_pid=6380 prev_prio=120 prev_state=x ==> next_comm=tmut next_pid=6390 next_prio=120
+            tmut-6390  [000] .... 41582.493544: sys_futex -> 0x0
+            tmut-6390  [000] .... 41582.493548: sys_nanosleep(rqtp: 7f7f10b7cd50, rmtp: 7f7f10b7cd50)
+            tmut-6390  [000] d... 41582.493553: sched_switch: prev_comm=tmut prev_pid=6390 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+          <idle>-0     [000] dNh. 41586.496018: sched_wakeup: comm=tmut pid=6390 prio=120 success=1 target_cpu=000
+          <idle>-0     [000] d... 41586.496021: sched_switch: prev_comm=swapper/0 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=tmut next_pid=6390 next_prio=120
+            tmut-6390  [000] .... 41586.496023: sys_nanosleep -> 0x0
+            tmut-6390  [000] .... 41586.496026: sys_futex(uaddr: 6023e0, op: 81, val: 1, utime: 8, uaddr2: 0, val3: e)
+            tmut-6390  [000] .... 41586.496028: sys_futex -> 0x0
+            tmut-6390  [000] .... 41586.496043: sched_process_exit: comm=tmut pid=6390 prio=120
+            tmut-6390  [000] d... 41586.496055: sched_switch: prev_comm=tmut prev_pid=6390 prev_prio=120 prev_state=x ==> next_comm=swapper/0 next_pid=0 next_prio=120
+          <idle>-0     [000] dNh. 41587.496638: sched_wakeup: comm=tmut pid=6362 prio=120 success=1 target_cpu=000
+          <idle>-0     [000] d... 41587.496642: sched_switch: prev_comm=swapper/0 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=tmut next_pid=6362 next_prio=120
+            tmut-6362  [000] .... 41587.496644: sys_nanosleep -> 0x0
+6362 6371 6380 6390
