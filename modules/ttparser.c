@@ -123,16 +123,28 @@ uint64_t get_futex_retval_sys_futex(const char* buf) {
 }
 
 
+void init_parser(uint64_t pid) {
+	if (!event_linked_list)
+		event_linked_list = init_event_linked_list();
+	root_pid = pid;
+	subprocess_amount = 0;
+	push_subprocess(pid);
+	print_subprocesses();
+}
 
 
 void parse_event(const char* buf) {
-	if (!event_linked_list) event_linked_list = init_event_linked_list();
 	// First to detect the traced function
 	if (compare_traced_function(buf, "sched_wakeup_new")) { 
 		uint64_t parent_thread_id = get_subject_thread_id(buf);
 		uint64_t child_thread_id = get_sched_wakeup_new_child_thread_id(buf);
 		uint64_t timestamp = get_timestamp(buf);
 		
+		// Filtering
+		if (!is_subprocess(parent_thread_id))
+			goto filtered_out;
+		push_subprocess(child_thread_id);
+
 		// Event THREAD_CREATE
 		event_node_t* node = create_thread_event(event_linked_list);
 		thread_event* event = node->event;
@@ -151,6 +163,10 @@ void parse_event(const char* buf) {
 		uint64_t to_thread_id = get_thread_wakeup_wakenup_thread_id(buf);
 		uint64_t timestamp = get_timestamp(buf);
 
+		// Filtering
+		if (!is_subprocess(from_thread_id) && !is_subprocess(to_thread_id))
+			goto filtered_out;
+		
 		// Event THREAD_WAKEUP
 		event_node_t* node = create_thread_event(event_linked_list);
 		thread_event* event = node->event;
@@ -171,6 +187,10 @@ void parse_event(const char* buf) {
 			uint64_t thread_id = get_subject_thread_id(buf);
 			uint64_t timestamp = get_timestamp(buf);
 
+			// Filtering
+			if (!is_subprocess(thread_id))
+				goto filtered_out;
+		
 			// Event THREAD_SLEEP
 			event_node_t* node = create_thread_event(event_linked_list);
 			thread_event* event = node->event;
@@ -200,6 +220,11 @@ void parse_event(const char* buf) {
 			switch (opcode & 0x7f) {
 				case 0: // wait for mutex
 				{
+					
+					// Filtering
+					if (!is_subprocess(thread_id))
+						goto filtered_out;
+		
 					// Event THREAD_WAIT_FUTEX
 					event_node_t* node = create_thread_event(event_linked_list);
 					thread_event* event = node->event;
@@ -218,6 +243,9 @@ void parse_event(const char* buf) {
 				{
 					// Event THREAD_RELEASE_FUTEX
 					event_node_t* node = create_thread_event(event_linked_list);
+					
+					// Filtering
+
 					thread_event* event = node->event;
 					event->type = THREAD_RELEASE_FUTEX;
 					event->event.thread_release_futex.thread_id = thread_id;
@@ -239,6 +267,11 @@ void parse_event(const char* buf) {
 			// Return from sys_futex
 			uint64_t thread_id = get_subject_thread_id(buf);
 			int64_t retval = get_futex_retval_sys_futex(buf);
+			
+			// Filtering
+			if (!is_subprocess(thread_id))
+				goto filtered_out;
+
 			thread_state* s = find_thread(thread_id);
 			assert(s);
 			assert(!(s->waiting_futex && s->releasing_futex));
@@ -269,6 +302,10 @@ void parse_event(const char* buf) {
 	} else if (compare_traced_function(buf, "sched_process_exit")) {
 		uint64_t timestamp = get_timestamp(buf);
 		uint64_t thread_id = get_subject_thread_id(buf);
+		
+		// Filtering
+		if (!is_subprocess(thread_id))
+			goto filtered_out;
 
 		// Event THREAD_EXIT
 		event_node_t* node = create_thread_event(event_linked_list);
@@ -293,8 +330,10 @@ void parse_event(const char* buf) {
 	}
 	print_thread_states();
 	dump_all_event_lists();
+	print_subprocesses();
 
 not_match:
+filtered_out:
 	fflush(stdout);
 }
 

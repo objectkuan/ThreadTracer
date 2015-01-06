@@ -2,8 +2,21 @@
 DEBUGFS=`grep debugfs /proc/mounts | awk '{ print $2; }'`
 TRACEDIR=$DEBUGFS/tracing
 
+PINCPU=0
+while getopts :p:h option
+do
+	case "$option" in
+		p)
+			PINCPU=1;;
+		h|\?)
+			echo "Usage: $0 [-p pin_cpu]"
+			exit 0;;
+	esac
+done
+
+
 function trace_event() {
-	echo $1 >> $TRACEDIR/set_event
+echo $1 >> $TRACEDIR/set_event
 }
 
 # clear everything
@@ -41,6 +54,21 @@ echo 0 > $TRACEDIR/trace
 
 
 
-# run
-echo "taskset -c 0 $*"
-taskset -c 0 $*
+# get the binary file (the last part of the command)
+binfile="$@"
+binfile=${binfile##* }
+# only trace current process
+PID=$$
+echo $PID >> $TRACEDIR/set_ftrace_pid
+
+if [[ $PINCPU -eq 1 ]]; then
+	echo "Pinned to CPU 0."
+	taskset -pc 0 $PID
+	echo 1 > $TRACEDIR/tracing_cpumask
+else
+	echo "Bouncing between cpus."
+fi
+
+echo 1 > $TRACEDIR/tracing_on
+echo 0 > $TRACEDIR/trace
+exec "$binfile"

@@ -51,13 +51,20 @@ void wait_resource_thread(uint64_t thread_id, uint64_t resource_id, uint64_t tim
 
 void start_releasing_resource_thread(uint64_t thread_id, uint64_t resource_id) {
 	thread_state* s = find_thread(thread_id);
+	if (s == NULL) {
+		// A strange pid may be captured releasing a futex
+		// since the ftrace pid filtering is not perfect
+		s = start_record_unknown_thread(thread_id);
+		s->state = RUNNABLE;
+	}
 	s->futex = NOFUTEX;
 	s->waiting_from_time = 0;
 	s->releasing_futex = 1;
 }
 void end_releasing_resource_thread(uint64_t thread_id) {
 	thread_state* s = find_thread(thread_id);
-	s->releasing_futex = 0;
+	if (s)
+		s->releasing_futex = 0;
 }
 
 uint64_t get_resource_thread(uint64_t thread_id) {

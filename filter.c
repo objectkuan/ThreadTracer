@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ttparser.h"
+#include <unistd.h>
 
-#include "trace.inc"
+//#include "trace.inc"
 
 void onexit (void) {
 	puts ("Exit");
@@ -16,7 +17,7 @@ void process(const char* buf) {
 	//fflush(stdout);
 }
 
-int main() {
+int main(int argc, char** args) {
 	char buf[MAX_LINE];
 	FILE *fd_trace_pipe;
 	
@@ -28,6 +29,7 @@ int main() {
 		exit(1);
 	}
 
+	init_parser(atoi(args[1]));
 	while (1) {
 		if (fgets(buf, MAX_LINE, fd_trace_pipe)) {
 			process(buf);
