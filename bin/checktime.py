@@ -1,10 +1,19 @@
 #!/usr/bin/python
-
-lines = [ i for i in open("data") ]
+import sys
+import re
 
 last = 0
-for line in lines:
-	this = int(line[10:21])
-	if this < last:
-		print "oops"
-	last = this
+pattern = re.compile(r".+\s(\d+\.[^:]+):.+")
+for line in open(sys.argv[1]):
+#for line in [ " 1.2:" ]:
+	m = pattern.match(line)
+	if m:
+		time = m.groups()[0]
+		time = time.replace(".", "")
+		this = int(time)
+		if this < last: 
+			print this, last
+			break
+		last = this
+	else:
+		print line

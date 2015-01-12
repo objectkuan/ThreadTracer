@@ -139,7 +139,6 @@ void dump_all_event_lists() {
 			print_thread_event(list->futex_events[j]->event);
 		}
 	}
-	printf("-------------------------------\n");
 	printf("=============================\n");
 	fflush(stdout);
 }

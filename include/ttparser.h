@@ -28,7 +28,13 @@ inline static get_traced_function_offset(const char* buf) {
 
 };
 
-void init_parser(uint64_t pid);
+#define MODE_MASK_RAW		1
+#define MODE_MASK_EVENT		2
+#define MODE_MASK_SUBPROCESS	4
+#define MODE_MASK_EVENT_STAT	8
+static int run_mode;
+
+void init_parser(uint64_t pid, int run_mode);
 void parse_event(const char* buf);
 static inline int in_hex_range(char c) {
 	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
@@ -45,6 +51,8 @@ uint64_t root_pid; // the root process we care
 uint64_t subprocess_amount;
 uint64_t subprocess_ids[MAX_SUBPROCESS];
 
+#define log_event(msg, args...) (run_mode & MODE_MASK_EVENT) && print_event(msg, ## args);
+
 static int is_subprocess(uint64_t pid) {
 	int i;
 	for (i = 0; i < subprocess_amount; i++) 
@@ -52,20 +60,42 @@ static int is_subprocess(uint64_t pid) {
 			return 1;
 	return 0;
 }
-static void push_subprocess(uint64_t pid) {
+static inline void push_subprocess(uint64_t pid) {
 	subprocess_ids[subprocess_amount++] = pid;
 } 
 
-static void print_subprocesses() {
+static inline void print_subprocesses() {
 	int i;
-	printf("****************\n");
-	printf("Subprocesses\n");
-	for (i = 0; i < subprocess_amount; i++) {
-		printf("%" PRId64 "\n", subprocess_ids[i]);
+	if (run_mode & MODE_MASK_SUBPROCESS) {
+		printf("========================\n");
+		printf("Subprocesses\n");
+		printf("------------------------\n");
+		for (i = 0; i < subprocess_amount; i++) {
+			printf("%" PRId64 "\t\t", subprocess_ids[i]);
+			if (i % 5 == 4) printf("\n");
+		}
+		if (i % 5) printf("\n");
+		printf("========================\n");
+		fflush(stdout);
 	}
-	printf("****************\n");
-	fflush(stdout);
 }
+
+static inline void print_line(const char* buf) {
+	if (run_mode & MODE_MASK_RAW) {
+		printf("%s", buf);
+		fflush(stdout);
+
+	}
+
+}
+static inline void print_all_event_lists() {
+	if (run_mode & MODE_MASK_EVENT_STAT) {
+		dump_all_event_lists();
+	}
+
+}
+
+void dump_all(int force);
 
 
 #endif

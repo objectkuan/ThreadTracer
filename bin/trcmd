@@ -1,0 +1,5 @@
+#!/bin/bash
+source ./trconfig.sh
+cmd="./trace-cmd $@"
+bash -c "$cmd"
+echo 0 > $TRACEDIR/tracing_on

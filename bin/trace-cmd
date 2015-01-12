@@ -1,29 +1,11 @@
 #!/bin/bash
-DEBUGFS=`grep debugfs /proc/mounts | awk '{ print $2; }'`
-TRACEDIR=$DEBUGFS/tracing
-
-PINCPU=0
-while getopts :p:h option
-do
-	case "$option" in
-		p)
-			PINCPU=1;;
-		h|\?)
-			echo "Usage: $0 [-p pin_cpu]"
-			exit 0;;
-	esac
-done
-
-
-function trace_event() {
-echo $1 >> $TRACEDIR/set_event
-}
+source ./trconfig.sh
 
 # clear everything
 echo "" > $TRACEDIR/set_ftrace_pid
 echo 0 > $TRACEDIR/options/userstacktrace
 echo 0 > $TRACEDIR/options/stacktrace
-
+killall -9 filter
 
 # trace event
 echo "" > $TRACEDIR/set_event
@@ -44,7 +26,7 @@ trace_event sched:sched_process_exit
 trace_event syscalls:sys_enter_futex
 trace_event syscalls:sys_exit_futex
 #    scheduler switch
-trace_event sched:sched_switch
+# trace_event sched:sched_switch
 
 
 # clear everything
@@ -67,8 +49,10 @@ if [[ $PINCPU -eq 1 ]]; then
 	echo 1 > $TRACEDIR/tracing_cpumask
 else
 	echo "Bouncing between cpus."
+	echo ff > $TRACEDIR/tracing_cpumask
 fi
 
 echo 1 > $TRACEDIR/tracing_on
 echo 0 > $TRACEDIR/trace
+./filter $PID 1 $TRACEDIR/trace_pipe > $PID &
 exec "$binfile"

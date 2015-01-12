@@ -11,28 +11,49 @@ void onexit (void) {
 
 #define MAX_LINE 2048
 
-void process(const char* buf) {
-	parse_event(buf);
-	//printf("%s", buf);
-	//fflush(stdout);
+
+void only_print(const char* buf) {
+	printf("%s", buf);
 }
 
+typedef void (*handler_t)(const char* buf);
+
+/**
+ * ./filter pid mode infile
+ * mode: 
+ *    0 only print
+ *    1 only print, with pid filtered
+ *    2 print event for each trace log line
+ *    3 print subprocesses
+ *    4 print grouped events
+ */
 int main(int argc, char** args) {
 	char buf[MAX_LINE];
 	FILE *fd_trace_pipe;
+	handler_t handle;
+
+	int pid = atoi(args[1]);
+	int mode = atoi(args[2]);
+	char* infile = args[3];
+
+	printf("PID: %d\n", pid);
+	printf("Mode: %d\n", mode);
 	
 	atexit (onexit);
-	//if ((fd_trace_pipe = fopen(tracing_file("trace_pipe"), "r")) == NULL) {
-	//if ((fd_trace_pipe = fopen("/home/hjq/playground/mutex/documents/test-1/filter_trace.log", "r")) == NULL) {
-	if ((fd_trace_pipe = fopen("/home/hjq/playground/mutex/bin/trace.log", "r")) == NULL) {
-		perror("fail to read sample_pipe");
+	if ((fd_trace_pipe = fopen(infile, "r")) == NULL) {
+		fprintf(stderr, "Fail to read %s\n", infile);
 		exit(1);
 	}
 
-	init_parser(atoi(args[1]));
+	init_parser(pid, mode);
+	handle = (mode == 0 ? &only_print : & parse_event);
 	while (1) {
 		if (fgets(buf, MAX_LINE, fd_trace_pipe)) {
-			process(buf);
+				handle(buf);
+		} else {
+			//
+			dump_all(1);
+			break;
 		}
 	}
 	return 0;

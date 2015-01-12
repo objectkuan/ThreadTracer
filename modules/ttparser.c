@@ -15,6 +15,7 @@ int compare_traced_function(const char* buf, const char* name) {
 	return 1;
 }
 
+uint64_t last_time = 0;
 uint64_t get_timestamp(const char* buf) {
 	uint64_t result = 0;
 	const char* c;
@@ -22,6 +23,9 @@ uint64_t get_timestamp(const char* buf) {
 		if (*c == '.') continue;
 		result = result * 10 + (*c - '0');
 	}
+	if (result < last_time)
+		printf("shit-shit %" PRId64 " < %" PRId64"\n", result, last_time);
+	last_time = result;
 	return result;
 }
 
@@ -123,13 +127,13 @@ uint64_t get_futex_retval_sys_futex(const char* buf) {
 }
 
 
-void init_parser(uint64_t pid) {
+void init_parser(uint64_t pid, int mode) {
 	if (!event_linked_list)
 		event_linked_list = init_event_linked_list();
 	root_pid = pid;
 	subprocess_amount = 0;
+	run_mode = mode;
 	push_subprocess(pid);
-	print_subprocesses();
 }
 
 
@@ -156,7 +160,8 @@ void parse_event(const char* buf) {
 
 		start_record_thread(child_thread_id);
 		wakeup_thread(child_thread_id);
-		print_event("%" PRId64 " CREATE_WAKEUP %" PRId64 " %" PRId64 "\n", timestamp, parent_thread_id, child_thread_id);
+		log_event("%" PRId64 " CREATE_WAKEUP %" PRId64 " %" PRId64 "\n", timestamp, parent_thread_id, child_thread_id);
+		print_line(buf);
 	} else if (compare_traced_function(buf, "sched_wakeup")) {
 		// wake up thread
 		uint64_t from_thread_id = get_subject_thread_id(buf);
@@ -178,7 +183,7 @@ void parse_event(const char* buf) {
 
 		wakeup_thread(to_thread_id);
 
-		print_event("%" PRId64 " WAKEUP %" PRId64 " %" PRId64 "\n", timestamp, from_thread_id, to_thread_id);
+		log_event("%" PRId64 " WAKEUP %" PRId64 " %" PRId64 "\n", timestamp, from_thread_id, to_thread_id);
 	} else if (compare_traced_function(buf, "sys_nanosleep")) {
 		int traced_function_offset = get_traced_function_offset(buf);
 		int tail_offset = traced_function_offset + 13; // traced_function_offset + strlen("sys_nanosleep")
@@ -200,7 +205,8 @@ void parse_event(const char* buf) {
 			insert_thread_event(node);
 
 			sleep_thread(thread_id);
-			print_event("%" PRId64 " SLEEP %" PRId64 "\n", timestamp, thread_id);
+			log_event("%" PRId64 " SLEEP %" PRId64 "\n", timestamp, thread_id);
+			print_line(buf);
 		} else {
 			// Return from sys_nanosleep
 			// We don't care this sometimes 
@@ -236,7 +242,8 @@ void parse_event(const char* buf) {
 					insert_futex_event(node);
 
 					wait_resource_thread(thread_id, resource, timestamp);
-					print_event("%" PRId64 " WAIT_FUTEX %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
+					log_event("%" PRId64 " WAIT_FUTEX %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
+					print_line(buf);
 					break;
 				}
 				case 1: // release mutex
@@ -245,6 +252,8 @@ void parse_event(const char* buf) {
 					event_node_t* node = create_thread_event(event_linked_list);
 					
 					// Filtering
+					if (!is_subprocess(thread_id))
+						goto filtered_out;
 
 					thread_event* event = node->event;
 					event->type = THREAD_RELEASE_FUTEX;
@@ -256,11 +265,20 @@ void parse_event(const char* buf) {
 
 					start_releasing_resource_thread(thread_id, resource);
 
-					print_event("%" PRId64 " RELEASE_FUTEX %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
+					log_event("%" PRId64 " RELEASE_FUTEX %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
+					print_line(buf);
 					break;
 				}
 				default:
-					assert(0);
+					// Filtering
+					if (!is_subprocess(thread_id))
+						goto filtered_out;
+
+					log_event("%" PRId64 " RELEASE_FUTEX %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
+					print_line(buf);
+					//printf("%s", buf);
+					//fflush(stdout);
+					//assert(0);
 					break;
 			}
 		} else {
@@ -277,7 +295,7 @@ void parse_event(const char* buf) {
 			assert(!(s->waiting_futex && s->releasing_futex));
 			if (s->waiting_futex) {
 				// get futex
-				assert(retval == 0 || retval == -11);
+				//assert(retval == 0 || retval == -11);
 				if (retval == 0 || retval == -11) {
 					uint64_t resource = get_resource_thread(thread_id);
 
@@ -291,12 +309,14 @@ void parse_event(const char* buf) {
 					insert_thread_event(node);
 					insert_futex_event(node);
 
-					print_event("%" PRId64 " GET_FUTEX %" PRId64 "\n", timestamp, thread_id);
+					log_event("%" PRId64 " GET_FUTEX %" PRId64 "\n", timestamp, thread_id);
+					print_line(buf);
 				}
 			} else if (s->releasing_futex) {
 				// end releasing futex
 				end_releasing_resource_thread(thread_id);
-				print_event("%" PRId64 " - WAKE_UP %" PRId64 " %d others\n", timestamp, thread_id, retval);
+				log_event("%" PRId64 " - WAKE_UP %" PRId64 " %d others\n", timestamp, thread_id, retval);
+				print_line(buf);
 			}
 		}		
 	} else if (compare_traced_function(buf, "sched_process_exit")) {
@@ -316,7 +336,8 @@ void parse_event(const char* buf) {
 		insert_thread_event(node);
 
 		exit_thread(thread_id);
-		print_event("%" PRId64 " EXIT %" PRId64 "\n", timestamp, thread_id);
+		log_event("%" PRId64 " EXIT %" PRId64 "\n", timestamp, thread_id);
+		print_line(buf);
 	} else if (compare_traced_function(buf, "sched_switch")) {
 		goto not_match;
 		// TODO: should I care about switching
@@ -324,14 +345,12 @@ void parse_event(const char* buf) {
 		uint64_t prev_thread_id = get_prev_thread_id_sched_switch(buf);	
 		uint64_t next_thread_id = get_next_thread_id_sched_switch(buf);	
 		switch_thread(prev_thread_id, next_thread_id);		
-		print_event("%" PRId64 " SWITCH %" PRId64 " %" PRId64 "\n", timestamp, prev_thread_id, next_thread_id);
+		log_event("%" PRId64 " SWITCH %" PRId64 " %" PRId64 "\n", timestamp, prev_thread_id, next_thread_id);
+		print_line(buf);
 	} else {
 		goto not_match;
 	}
-	print_thread_states();
-	dump_all_event_lists();
-	print_subprocesses();
-
+	dump_all(0);
 not_match:
 filtered_out:
 	fflush(stdout);
@@ -339,4 +358,10 @@ filtered_out:
 
 
 
-
+void dump_all(int force) {
+	int tmp_run_mode = run_mode;
+	if (force) run_mode = 0xf;
+	print_all_event_lists();
+	print_subprocesses();
+	run_mode = tmp_run_mode;
+}
