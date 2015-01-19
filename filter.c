@@ -14,6 +14,7 @@ void onexit (void) {
 
 void only_print(const char* buf) {
 	printf("%s", buf);
+	fflush(stdout);
 }
 
 typedef void (*handler_t)(const char* buf);
