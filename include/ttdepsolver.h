@@ -16,7 +16,7 @@
  */
 
 // TODO: may overflow
-#define MAX_THREAD_EVENTS 2048
+#define MAX_THREAD_EVENTS 6650
 typedef struct thread_event_list {
 	uint64_t thread_id;
 	int amount;
@@ -44,7 +44,7 @@ void insert_futex_event(event_node_t* node);
 // from timestamp `from` to `to`
 event_linked_list_t* extrace_get_futex_events_in_range(uint64_t thread_id, 
 		uint64_t from, uint64_t to);
-thread_event* get_futex_release_event(thread_event* get_futex_event);
+thread_event_t* get_futex_release_event(thread_event_t* get_futex_event);
 
 // For debugging
 void dump_all_event_lists();

@@ -29,7 +29,6 @@ void insert_thread_event(event_node_t* node) {
 	// find the thread_id
 	switch(node->event->type) {
 		case THREAD_CREATE:
-			return; // skip
 			thread_id = node->event->event.thread_create.child_thread_id;
 			break;
 		case THREAD_WAIT_FUTEX:
@@ -42,13 +41,10 @@ void insert_thread_event(event_node_t* node) {
 			thread_id = node->event->event.thread_release_futex.thread_id;
 			break;
 		case THREAD_SLEEP:
-			return; // skip
 			thread_id = node->event->event.thread_sleep.thread_id;
 			break;
 		case THREAD_WAKEUP:
-			return; // skip
 			thread_id = node->event->event.thread_wakeup.to_thread_id;
-			return;
 			break;
 		case THREAD_EXIT:
 			thread_id = node->event->event.thread_exit.thread_id;
@@ -57,7 +53,12 @@ void insert_thread_event(event_node_t* node) {
 			assert(0);
 	}
 	list = find_event_list_by_thread(thread_id);
-	list->thread_events[list->amount++] = node;
+	if (list->amount < MAX_THREAD_EVENTS)
+		list->thread_events[list->amount++] = node;
+	else {
+		printf("Thread events full\n");
+		fflush(stdout);
+	}
 }
 
 void insert_futex_event(event_node_t* node) {
@@ -82,7 +83,12 @@ void insert_futex_event(event_node_t* node) {
 			assert(0);
 	}
 	list = find_event_list_by_futex(futex);
-	list->futex_events[list->amount++] = node;
+	if (list->amount < MAX_THREAD_EVENTS)
+		list->futex_events[list->amount++] = node;
+	else {
+		printf("Futex events full\n");
+		fflush(stdout);
+	}
 }
 
 event_linked_list_t* extract_get_futex_events_in_range(uint64_t thread_id, 
@@ -91,7 +97,7 @@ event_linked_list_t* extract_get_futex_events_in_range(uint64_t thread_id,
 	event_linked_list_t* rlist = init_event_linked_list();
 	int i;
 	for (i = 0; i < event_list->amount; i++) {
-		thread_event* event = event_list->thread_events[i]->event;
+		thread_event_t* event = event_list->thread_events[i]->event;
 		if (event->type == THREAD_GET_FUTEX) {
 			insert_event_node_to_tail(rlist, event);
 		}
@@ -99,8 +105,8 @@ event_linked_list_t* extract_get_futex_events_in_range(uint64_t thread_id,
 	return rlist;
 }
 
-thread_event* get_futex_release_event(thread_event* get_futex_event) {
-	thread_event* result = NULL;
+thread_event_t* get_futex_release_event(thread_event_t* get_futex_event) {
+	thread_event_t* result = NULL;
 	uint64_t resource_id;
 	int i;
 	
@@ -109,7 +115,7 @@ thread_event* get_futex_release_event(thread_event* get_futex_event) {
 	resource_id = get_futex_event->event.thread_get_futex.resource_id;
 	futex_event_list_t* event_list = find_event_list_by_futex(resource_id);
 	for (i = event_list->amount; i >= 0; i--) {
-		thread_event* event = event_list->futex_events[i]->event;
+		thread_event_t* event = event_list->futex_events[i]->event;
 		if (event->type == THREAD_RELEASE_FUTEX && event->event.thread_get_futex.timestamp <= get_futex_event->event.thread_get_futex.timestamp) {
 			return event;	
 		}

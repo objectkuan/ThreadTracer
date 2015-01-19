@@ -1,6 +1,6 @@
 #include "ttevent.h"
 
-void print_thread_event(thread_event* event) {
+void print_thread_event(thread_event_t* event) {
 	switch(event->type) {
 		case THREAD_CREATE:
 		{
@@ -47,7 +47,7 @@ void print_thread_event(thread_event* event) {
 		}
 		case THREAD_WAKEUP:
 		{
-			printf("\t\t%" PRId64 " WAKEUP %" PRId64 " %" PRId64 "\n", 
+			printf("\t\t%" PRId64 " WAKEUP %" PRId64 " ==>%" PRId64 "\n", 
 				event->event.thread_wakeup.timestamp, 
 				event->event.thread_wakeup.from_thread_id, 
 				event->event.thread_wakeup.to_thread_id
@@ -78,7 +78,7 @@ event_linked_list_t* init_event_linked_list() {
 	list->length = 0;
 	return list;
 }
-void insert_event_node_to_tail(event_linked_list_t* list, thread_event* event) {
+void insert_event_node_to_tail(event_linked_list_t* list, thread_event_t* event) {
 	list->tail->next = (event_node_t*) malloc(sizeof(event_node_t));
 	list->tail = list->tail->next;
 	list->tail->event = event;
@@ -88,7 +88,7 @@ void insert_event_node_to_tail(event_linked_list_t* list, thread_event* event) {
 event_node_t* create_thread_event(event_linked_list_t* list) {
 	list->tail->next = (event_node_t*) malloc(sizeof(event_node_t));
 	list->tail = list->tail->next;
-	list->tail->event = (thread_event*) malloc(sizeof(thread_event));
+	list->tail->event = (thread_event_t*) malloc(sizeof(thread_event_t));
 	list->tail->next = NULL;
 	return list->tail;
 }

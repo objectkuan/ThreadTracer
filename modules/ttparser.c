@@ -151,7 +151,7 @@ void parse_event(const char* buf) {
 
 		// Event THREAD_CREATE
 		event_node_t* node = create_thread_event(event_linked_list);
-		thread_event* event = node->event;
+		thread_event_t* event = node->event;
 		event->type = THREAD_CREATE;
 		event->event.thread_create.parent_thread_id = parent_thread_id;
 		event->event.thread_create.child_thread_id = child_thread_id;
@@ -159,7 +159,7 @@ void parse_event(const char* buf) {
 		insert_thread_event(node);
 
 		start_record_thread(child_thread_id);
-		wakeup_thread(child_thread_id);
+		wakeup_thread(child_thread_id, timestamp);
 		log_event("%" PRId64 " CREATE_WAKEUP %" PRId64 " %" PRId64 "\n", timestamp, parent_thread_id, child_thread_id);
 		print_line(buf);
 	} else if (compare_traced_function(buf, "sched_wakeup")) {
@@ -174,14 +174,14 @@ void parse_event(const char* buf) {
 		
 		// Event THREAD_WAKEUP
 		event_node_t* node = create_thread_event(event_linked_list);
-		thread_event* event = node->event;
+		thread_event_t* event = node->event;
 		event->type = THREAD_WAKEUP;
 		event->event.thread_wakeup.from_thread_id = from_thread_id;
 		event->event.thread_wakeup.to_thread_id = to_thread_id;
 		event->event.thread_wakeup.timestamp = timestamp;
 		insert_thread_event(node);
 
-		wakeup_thread(to_thread_id);
+		wakeup_thread(to_thread_id, timestamp);
 
 		log_event("%" PRId64 " WAKEUP %" PRId64 " %" PRId64 "\n", timestamp, from_thread_id, to_thread_id);
 	} else if (compare_traced_function(buf, "sys_nanosleep")) {
@@ -198,13 +198,13 @@ void parse_event(const char* buf) {
 		
 			// Event THREAD_SLEEP
 			event_node_t* node = create_thread_event(event_linked_list);
-			thread_event* event = node->event;
+			thread_event_t* event = node->event;
 			event->type = THREAD_SLEEP;
 			event->event.thread_sleep.thread_id = thread_id;
 			event->event.thread_sleep.timestamp = timestamp;
 			insert_thread_event(node);
 
-			sleep_thread(thread_id);
+			sleep_thread(thread_id, timestamp);
 			log_event("%" PRId64 " SLEEP %" PRId64 "\n", timestamp, thread_id);
 			print_line(buf);
 		} else {
@@ -233,7 +233,7 @@ void parse_event(const char* buf) {
 		
 					// Event THREAD_WAIT_FUTEX
 					event_node_t* node = create_thread_event(event_linked_list);
-					thread_event* event = node->event;
+					thread_event_t* event = node->event;
 					event->type = THREAD_WAIT_FUTEX;
 					event->event.thread_wait_futex.thread_id = thread_id;
 					event->event.thread_wait_futex.resource_id = resource;
@@ -255,7 +255,7 @@ void parse_event(const char* buf) {
 					if (!is_subprocess(thread_id))
 						goto filtered_out;
 
-					thread_event* event = node->event;
+					thread_event_t* event = node->event;
 					event->type = THREAD_RELEASE_FUTEX;
 					event->event.thread_release_futex.thread_id = thread_id;
 					event->event.thread_release_futex.resource_id = resource;
@@ -290,7 +290,7 @@ void parse_event(const char* buf) {
 			if (!is_subprocess(thread_id))
 				goto filtered_out;
 
-			thread_state* s = find_thread(thread_id);
+			thread_state_t* s = find_thread(thread_id);
 			assert(s);
 			assert(!(s->waiting_futex && s->releasing_futex));
 			if (s->waiting_futex) {
@@ -301,7 +301,7 @@ void parse_event(const char* buf) {
 
 					// Event THREAD_GET_FUTEX
 					event_node_t* node = create_thread_event(event_linked_list);
-					thread_event* event = node->event;
+					thread_event_t* event = node->event;
 					event->type = THREAD_GET_FUTEX;
 					event->event.thread_get_futex.thread_id = thread_id;
 					event->event.thread_get_futex.resource_id = resource;
@@ -329,7 +329,7 @@ void parse_event(const char* buf) {
 
 		// Event THREAD_EXIT
 		event_node_t* node = create_thread_event(event_linked_list);
-		thread_event* event = node->event;
+		thread_event_t* event = node->event;
 		event->type = THREAD_EXIT;
 		event->event.thread_exit.thread_id = thread_id;
 		event->event.thread_exit.timestamp = timestamp;

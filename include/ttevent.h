@@ -67,9 +67,9 @@ typedef enum {
 	THREAD_SLEEP,
 	THREAD_WAKEUP,
 	THREAD_EXIT,
-} event_type;
+} event_type_t;
 typedef struct thread_event {
-	event_type type;
+	event_type_t type;
 	union {
 		struct thread_create thread_create;
 		struct thread_wait_futex thread_wait_futex;
@@ -79,11 +79,11 @@ typedef struct thread_event {
 		struct thread_wakeup thread_wakeup;
 		struct thread_exit thread_exit;
 	} event;
-} thread_event; // the collection of events
+} thread_event_t; // the collection of events
 
 
 // Print a thread event to stdout
-void print_thread_event(thread_event* event);
+void print_thread_event(thread_event_t* event);
 
 
 /* 
@@ -94,7 +94,7 @@ void print_thread_event(thread_event* event);
  *
  */
 typedef struct event_node_t {
-	thread_event* event;
+	thread_event_t* event;
 	struct event_node_t* next;
 } event_node_t;
 typedef struct event_linked_list_t {
@@ -103,7 +103,7 @@ typedef struct event_linked_list_t {
 	int length;
 } event_linked_list_t;
 event_linked_list_t* init_event_linked_list();
-void insert_event_node_to_tail(event_linked_list_t* list, thread_event* event);
+void insert_event_node_to_tail(event_linked_list_t* list, thread_event_t* event);
 event_node_t* create_thread_event(event_linked_list_t* list);
 
 #endif
