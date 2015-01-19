@@ -96,14 +96,19 @@ void print_thread_event(thread_event_t* event);
 typedef struct event_node_t {
 	thread_event_t* event;
 	struct event_node_t* next;
-} event_node_t;
+} event_node_t; // Event linked list node type
 typedef struct event_linked_list_t {
 	event_node_t* head;
 	event_node_t* tail;
 	int length;
-} event_linked_list_t;
+} event_linked_list_t; // Event linked list type
+
+// Create and initialize an event linked list
 event_linked_list_t* init_event_linked_list();
+// Insert a node to the tail of an event linked list
 void insert_event_node_to_tail(event_linked_list_t* list, thread_event_t* event);
+// Insert a node to the tail of an event linked list, and return
+// the node to edit
 event_node_t* create_thread_event(event_linked_list_t* list);
 
 #endif

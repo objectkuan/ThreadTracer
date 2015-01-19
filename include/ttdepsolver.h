@@ -29,10 +29,12 @@ typedef struct futex_event_list {
 	event_node_t* futex_events[MAX_THREAD_EVENTS];
 } futex_event_list_t;
 
+
 static int thread_event_list_len = 0;
 static int futex_event_list_len = 0;
 static thread_event_list_t thread_event_lists[MAX_THREAD_EVENTS];
 static futex_event_list_t futex_event_lists[MAX_THREAD_EVENTS];
+
 
 thread_event_list_t* find_event_list_by_thread(uint64_t thread_id);
 void insert_thread_event(event_node_t* node);

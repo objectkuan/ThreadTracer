@@ -14,23 +14,34 @@ typedef enum {
 } thread_running_state_t;
 
 #define NOFUTEX 0
+#define NOPOLL 0
 typedef struct thread_event thread_event_t;
 typedef struct thread_state {
 	uint64_t thread_id;
 	thread_running_state_t state;
 
-	uint64_t futex; // NOFUTEX if not holding or waiting futex
+	/* Resource waiting */
 	uint64_t waiting_from_time;
+	uint64_t sleep_time;
+	//   futex:
+	uint64_t futex; // NOFUTEX if not holding or waiting futex
 	int waiting_futex;
 	int releasing_futex;
-
-	uint64_t sleep_time;
+	//   poll
+	uint64_t pollfd; // NOPOLL if not waiting for a poll
+	int waiting_pollfd;
+	
 } thread_state_t;
+
+
 
 static thread_state_t *current = NULL;
 #define MAX_THREAD_NUM 1024
 thread_state_t thread_states[MAX_THREAD_NUM];
 int thread_amount;
+
+
+
 
 // Return a thread's state with id `thread_id`
 thread_state_t* find_thread(uint64_t thread_id);
@@ -46,7 +57,7 @@ uint64_t get_resource_thread(uint64_t thread_id);
 void switch_thread(uint64_t prev_thread_id, uint64_t next_thread_id);
 void exit_thread(uint64_t thread_id);
 
-// Print a thread states to stdout
+// Print all thread states to stdout
 void print_thread_states();
 
 #endif

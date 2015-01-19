@@ -3,12 +3,15 @@
 thread_state_t* start_record_thread(uint64_t thread_id) {
 	assert(thread_amount < MAX_THREAD_NUM);
 	thread_state_t* state = &(thread_states[thread_amount]);
+
 	state->thread_id = thread_id;
 	state->state = UNKNOWN;
 	state->futex = NOFUTEX;
 	state->waiting_futex = 0;
-	state->waiting_from_time = 0;
 	state->releasing_futex = 0;
+	state->pollfd = NOPOLL;
+	state->waiting_pollfd = 0;
+	state->waiting_from_time = 0;
 	state->sleep_time = 0;
 	++thread_amount;
 	return state;
