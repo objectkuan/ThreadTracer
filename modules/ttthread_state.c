@@ -52,7 +52,7 @@ void wakeup_thread(uint64_t thread_id, uint64_t timestamp) {
 	}
 }
 
-void wait_resource_thread(uint64_t thread_id, uint64_t resource_id, uint64_t timestamp) {
+void wait_futex_thread(uint64_t thread_id, uint64_t resource_id, uint64_t timestamp) {
 	thread_state_t* s = change_thread_state(thread_id, SLEEPING);
 	s->futex = resource_id;
 	s->waiting_from_time = timestamp;
@@ -60,7 +60,7 @@ void wait_resource_thread(uint64_t thread_id, uint64_t resource_id, uint64_t tim
 	s->sleep_time = timestamp;
 }
 
-void start_releasing_resource_thread(uint64_t thread_id, uint64_t resource_id) {
+void start_releasing_futex_thread(uint64_t thread_id, uint64_t resource_id) {
 	thread_state_t* s = find_thread(thread_id);
 	if (s == NULL) {
 		// A strange pid may be captured releasing a futex
@@ -72,16 +72,33 @@ void start_releasing_resource_thread(uint64_t thread_id, uint64_t resource_id) {
 	s->waiting_from_time = 0;
 	s->releasing_futex = 1;
 }
-void end_releasing_resource_thread(uint64_t thread_id) {
+void end_releasing_futex_thread(uint64_t thread_id) {
 	thread_state_t* s = find_thread(thread_id);
 	if (s)
 		s->releasing_futex = 0;
 }
 
-uint64_t get_resource_thread(uint64_t thread_id) {
+uint64_t get_futex_thread(uint64_t thread_id) {
 	thread_state_t* s = find_thread(thread_id);
 	s->waiting_futex = 0;
 	return s->futex;
+}
+
+void wait_poll_thread(uint64_t thread_id, uint64_t pollfd, uint64_t timestamp) {
+	thread_state_t* s = change_thread_state(thread_id, SLEEPING);
+	s->pollfd = pollfd;
+	s->waiting_from_time = timestamp;
+	s->waiting_pollfd = 1;
+	s->sleep_time = timestamp;
+}
+
+uint64_t get_poll_thread(uint64_t thread_id) {
+	uint64_t result;
+	thread_state_t* s = find_thread(thread_id);
+	result = s->pollfd;
+	s->waiting_pollfd = 0;
+	s->pollfd = NOPOLL;
+	return result;
 }
 
 void switch_thread(uint64_t prev_thread_id, uint64_t next_thread_id) {

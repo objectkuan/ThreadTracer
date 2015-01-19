@@ -37,6 +37,23 @@ void print_thread_event(thread_event_t* event) {
 			);
 			break;
 		}
+		case THREAD_ENTER_POLL:
+		{
+			printf("\t\t%" PRId64 " ENTER_POLL %" PRId64 " %" PRId64 "\n", 
+				event->event.thread_enter_poll.timestamp, 
+				event->event.thread_enter_poll.thread_id, 
+				event->event.thread_enter_poll.resource_id
+			);
+			break;
+		}
+		case THREAD_EXIT_POLL:
+		{
+			printf("\t\t%" PRId64 " EXIT_POLL %" PRId64 "\n", 
+				event->event.thread_exit_poll.timestamp, 
+				event->event.thread_exit_poll.thread_id
+			);
+			break;
+		}
 		case THREAD_SLEEP:
 		{
 			printf("\t\t%" PRId64 " SLEEP %" PRId64 "\n", 
@@ -47,7 +64,7 @@ void print_thread_event(thread_event_t* event) {
 		}
 		case THREAD_WAKEUP:
 		{
-			printf("\t\t%" PRId64 " WAKEUP %" PRId64 " ==>%" PRId64 "\n", 
+			printf("\t\t%" PRId64 " WAKEUP %" PRId64 " ==> %" PRId64 "\n", 
 				event->event.thread_wakeup.timestamp, 
 				event->event.thread_wakeup.from_thread_id, 
 				event->event.thread_wakeup.to_thread_id

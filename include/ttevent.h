@@ -43,6 +43,18 @@ struct thread_release_futex {
 	uint64_t timestamp;
 }; // sys_futex with op 81
 
+struct thread_enter_poll {
+	uint64_t thread_id;
+	uint64_t resource_id;
+	uint64_t timestamp;
+}; // sys_poll enter
+
+struct thread_exit_poll {
+	uint64_t thread_id;
+	uint64_t resource_id;
+	uint64_t timestamp;
+}; // sys_poll exit
+
 struct thread_sleep {
 	uint64_t thread_id;
 	uint64_t timestamp;
@@ -64,6 +76,8 @@ typedef enum {
 	THREAD_WAIT_FUTEX,
 	THREAD_GET_FUTEX,
 	THREAD_RELEASE_FUTEX,
+	THREAD_ENTER_POLL,
+	THREAD_EXIT_POLL,
 	THREAD_SLEEP,
 	THREAD_WAKEUP,
 	THREAD_EXIT,
@@ -75,6 +89,8 @@ typedef struct thread_event {
 		struct thread_wait_futex thread_wait_futex;
 		struct thread_get_futex thread_get_futex;
 		struct thread_release_futex thread_release_futex;
+		struct thread_enter_poll thread_enter_poll;
+		struct thread_exit_poll thread_exit_poll;
 		struct thread_sleep thread_sleep;
 		struct thread_wakeup thread_wakeup;
 		struct thread_exit thread_exit;
@@ -84,6 +100,8 @@ typedef struct thread_event {
 
 // Print a thread event to stdout
 void print_thread_event(thread_event_t* event);
+
+
 
 
 /* 

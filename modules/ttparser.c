@@ -87,6 +87,21 @@ void get_futex_args_sys_futex(const char* buf, uint64_t* resource, int* opcode) 
 			*opcode = (*opcode) * 16 + *c - 'a' + 10;
 }
 
+// sys_poll
+void get_poll_args_sys_poll(const char* buf, uint64_t* resource) {
+	const char* c;
+	int traced_function_offset = get_traced_function_offset(buf);
+	*resource = 0;
+	// buf + traced_function_offset + strlen("sys_poll(ufds: ")
+	// buf + traced_function_offset + 15
+	for (c = buf + traced_function_offset + 15; in_hex_range(*c); ++c) {
+		if (*c >= '0' && *c <= '9') 
+			*resource = (*resource) * 16 + *c - '0';
+		else
+			*resource = (*resource) * 16 + *c - 'a' + 10;
+	}
+}
+
 // sys_sched_switch
 uint64_t get_prev_thread_id_sched_switch(const char* buf) {
 	const char* sub = strstr(buf, "prev_pid=");
@@ -241,7 +256,7 @@ void parse_event(const char* buf) {
 					insert_thread_event(event);
 					insert_futex_event(event);
 
-					wait_resource_thread(thread_id, resource, timestamp);
+					wait_futex_thread(thread_id, resource, timestamp);
 					log_event("%" PRId64 " WAIT_FUTEX %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
 					print_line(buf);
 					break;
@@ -263,7 +278,7 @@ void parse_event(const char* buf) {
 					insert_thread_event(event);
 					insert_futex_event(event);
 
-					start_releasing_resource_thread(thread_id, resource);
+					start_releasing_futex_thread(thread_id, resource);
 
 					log_event("%" PRId64 " RELEASE_FUTEX %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
 					print_line(buf);
@@ -297,7 +312,7 @@ void parse_event(const char* buf) {
 				// get futex
 				//assert(retval == 0 || retval == -11);
 				if (retval == 0 || retval == -11) {
-					uint64_t resource = get_resource_thread(thread_id);
+					uint64_t resource = get_futex_thread(thread_id);
 
 					// Event THREAD_GET_FUTEX
 					event_node_t* node = create_thread_event(event_linked_list);
@@ -314,7 +329,7 @@ void parse_event(const char* buf) {
 				}
 			} else if (s->releasing_futex) {
 				// end releasing futex
-				end_releasing_resource_thread(thread_id);
+				end_releasing_futex_thread(thread_id);
 				log_event("%" PRId64 " - WAKE_UP %" PRId64 " %d others\n", timestamp, thread_id, retval);
 				print_line(buf);
 			}
@@ -338,6 +353,54 @@ void parse_event(const char* buf) {
 		exit_thread(thread_id);
 		log_event("%" PRId64 " EXIT %" PRId64 "\n", timestamp, thread_id);
 		print_line(buf);
+	} else if (compare_traced_function(buf, "sys_poll")) { 
+		int traced_function_offset = get_traced_function_offset(buf);
+		int tail_offset = traced_function_offset + 8; // traced_function_offset + strlen("sys_poll")
+		uint64_t timestamp = get_timestamp(buf);
+		if (buf[tail_offset] == '(') {
+			// Call sys_poll
+			uint64_t thread_id = get_subject_thread_id(buf);
+			uint64_t resource = 0;
+
+			get_poll_args_sys_poll(buf, &resource);
+			assert(resource != 0);
+
+			// Filtering
+			if (!is_subprocess(thread_id))
+				goto filtered_out;
+
+			// Event THREAD_WAIT_FUTEX
+			event_node_t* node = create_thread_event(event_linked_list);
+			thread_event_t* event = node->event;
+			event->type = THREAD_ENTER_POLL;
+			event->event.thread_enter_poll.thread_id = thread_id;
+			event->event.thread_enter_poll.resource_id = resource;
+			event->event.thread_enter_poll.timestamp = timestamp;
+			insert_thread_event(event);
+			insert_poll_event(event);
+
+			wait_poll_thread(thread_id, resource, timestamp);
+		} else {
+			// Return from sys_poll
+			uint64_t thread_id = get_subject_thread_id(buf);
+			uint64_t pollfd;
+
+			// Filtering
+			if (!is_subprocess(thread_id))
+				goto filtered_out;
+
+			pollfd = get_poll_thread(thread_id);
+			// Event THREAD_WAIT_FUTEX
+			event_node_t* node = create_thread_event(event_linked_list);
+			thread_event_t* event = node->event;
+			event->type = THREAD_EXIT_POLL;
+			event->event.thread_exit_poll.thread_id = thread_id;
+			event->event.thread_exit_poll.resource_id = pollfd;
+			event->event.thread_exit_poll.timestamp = timestamp;
+			insert_thread_event(event);
+			insert_poll_event(event);
+
+		}
 	} else if (compare_traced_function(buf, "sched_switch")) {
 		goto not_match;
 		// TODO: should I care about switching
