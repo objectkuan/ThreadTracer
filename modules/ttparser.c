@@ -156,7 +156,7 @@ void parse_event(const char* buf) {
 		event->event.thread_create.parent_thread_id = parent_thread_id;
 		event->event.thread_create.child_thread_id = child_thread_id;
 		event->event.thread_create.timestamp = timestamp;
-		insert_thread_event(node);
+		insert_thread_event(event);
 
 		start_record_thread(child_thread_id);
 		wakeup_thread(child_thread_id, timestamp);
@@ -179,7 +179,7 @@ void parse_event(const char* buf) {
 		event->event.thread_wakeup.from_thread_id = from_thread_id;
 		event->event.thread_wakeup.to_thread_id = to_thread_id;
 		event->event.thread_wakeup.timestamp = timestamp;
-		insert_thread_event(node);
+		insert_thread_event(event);
 
 		wakeup_thread(to_thread_id, timestamp);
 
@@ -202,7 +202,7 @@ void parse_event(const char* buf) {
 			event->type = THREAD_SLEEP;
 			event->event.thread_sleep.thread_id = thread_id;
 			event->event.thread_sleep.timestamp = timestamp;
-			insert_thread_event(node);
+			insert_thread_event(event);
 
 			sleep_thread(thread_id, timestamp);
 			log_event("%" PRId64 " SLEEP %" PRId64 "\n", timestamp, thread_id);
@@ -238,8 +238,8 @@ void parse_event(const char* buf) {
 					event->event.thread_wait_futex.thread_id = thread_id;
 					event->event.thread_wait_futex.resource_id = resource;
 					event->event.thread_wait_futex.timestamp = timestamp;
-					insert_thread_event(node);
-					insert_futex_event(node);
+					insert_thread_event(event);
+					insert_futex_event(event);
 
 					wait_resource_thread(thread_id, resource, timestamp);
 					log_event("%" PRId64 " WAIT_FUTEX %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
@@ -260,8 +260,8 @@ void parse_event(const char* buf) {
 					event->event.thread_release_futex.thread_id = thread_id;
 					event->event.thread_release_futex.resource_id = resource;
 					event->event.thread_release_futex.timestamp = timestamp;
-					insert_thread_event(node);
-					insert_futex_event(node);
+					insert_thread_event(event);
+					insert_futex_event(event);
 
 					start_releasing_resource_thread(thread_id, resource);
 
@@ -306,8 +306,8 @@ void parse_event(const char* buf) {
 					event->event.thread_get_futex.thread_id = thread_id;
 					event->event.thread_get_futex.resource_id = resource;
 					event->event.thread_get_futex.timestamp = timestamp;
-					insert_thread_event(node);
-					insert_futex_event(node);
+					insert_thread_event(event);
+					insert_futex_event(event);
 
 					log_event("%" PRId64 " GET_FUTEX %" PRId64 "\n", timestamp, thread_id);
 					print_line(buf);
@@ -333,7 +333,7 @@ void parse_event(const char* buf) {
 		event->type = THREAD_EXIT;
 		event->event.thread_exit.thread_id = thread_id;
 		event->event.thread_exit.timestamp = timestamp;
-		insert_thread_event(node);
+		insert_thread_event(event);
 
 		exit_thread(thread_id);
 		log_event("%" PRId64 " EXIT %" PRId64 "\n", timestamp, thread_id);

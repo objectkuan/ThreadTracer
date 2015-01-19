@@ -20,13 +20,13 @@
 typedef struct thread_event_list {
 	uint64_t thread_id;
 	int amount;
-	event_node_t* thread_events[MAX_THREAD_EVENTS];
+	event_linked_list_t* list;
 } thread_event_list_t;
 
 typedef struct futex_event_list {
 	uint64_t futex;
 	int amount;
-	event_node_t* futex_events[MAX_THREAD_EVENTS];
+	event_linked_list_t* list;
 } futex_event_list_t;
 
 
@@ -37,10 +37,10 @@ static futex_event_list_t futex_event_lists[MAX_THREAD_EVENTS];
 
 
 thread_event_list_t* find_event_list_by_thread(uint64_t thread_id);
-void insert_thread_event(event_node_t* node);
+void insert_thread_event(thread_event_t* event);
 
 futex_event_list_t* find_event_list_by_futex(uint64_t futex);
-void insert_futex_event(event_node_t* node);
+void insert_futex_event(thread_event_t* event);
 
 // Return a linked list of events within thread `thread_id`
 // from timestamp `from` to `to`

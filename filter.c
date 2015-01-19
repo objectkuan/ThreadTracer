@@ -25,8 +25,8 @@ typedef void (*handler_t)(const char* buf);
  *    0 only print
  *    1 only print, with pid filtered
  *    2 print event for each trace log line
- *    3 print subprocesses
- *    4 print grouped events
+ *    4 print subprocesses
+ *    8 print grouped events
  */
 int main(int argc, char** args) {
 	char buf[MAX_LINE];
