@@ -12,8 +12,8 @@ for line in open(sys.argv[1]):
 		time = time.replace(".", "")
 		this = int(time)
 		if this < last: 
-			print this, last
-			break
+			print "oops", this, last
 		last = this
+		print time
 	else:
 		print line
