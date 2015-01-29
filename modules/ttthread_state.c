@@ -45,11 +45,6 @@ void sleep_thread(uint64_t thread_id, uint64_t timestamp) {
 
 void wakeup_thread(uint64_t thread_id, uint64_t timestamp) {
 	thread_state_t* ts = change_thread_state(thread_id, RUNNABLE);
-	if (ts->sleep_time > 0) {
-		if (thread_id == 28343)
-		printf("SLEEPINTERVAL %" PRId64 "\n", timestamp - ts->sleep_time);
-		ts->sleep_time = 0;
-	}
 }
 
 void wait_futex_thread(uint64_t thread_id, uint64_t resource_id, uint64_t timestamp) {
@@ -57,31 +52,19 @@ void wait_futex_thread(uint64_t thread_id, uint64_t resource_id, uint64_t timest
 	s->futex = resource_id;
 	s->waiting_from_time = timestamp;
 	s->waiting_futex = 1;
-	s->sleep_time = timestamp;
+	s->sleep_time = 0;
 }
 
-void start_releasing_futex_thread(uint64_t thread_id, uint64_t resource_id) {
+uint64_t get_futex_thread(uint64_t thread_id, uint64_t timestamp, uint64_t* sleep_time) {
+	uint64_t result;
 	thread_state_t* s = find_thread(thread_id);
-	if (s == NULL) {
-		// A strange pid may be captured releasing a futex
-		// since the ftrace pid filtering is not perfect
+	if (!s) 
 		s = start_record_unknown_thread(thread_id);
-		s->state = RUNNABLE;
-	}
-	s->futex = NOFUTEX;
-	s->waiting_from_time = 0;
-	s->releasing_futex = 1;
-}
-void end_releasing_futex_thread(uint64_t thread_id) {
-	thread_state_t* s = find_thread(thread_id);
-	if (s)
-		s->releasing_futex = 0;
-}
-
-uint64_t get_futex_thread(uint64_t thread_id) {
-	thread_state_t* s = find_thread(thread_id);
+	*sleep_time = timestamp - s->waiting_from_time;
+	result = s->futex;
 	s->waiting_futex = 0;
-	return s->futex;
+	s->futex = 0;
+	return result;
 }
 
 void wait_poll_thread(uint64_t thread_id, uint64_t pollfd, uint64_t timestamp) {
@@ -92,9 +75,12 @@ void wait_poll_thread(uint64_t thread_id, uint64_t pollfd, uint64_t timestamp) {
 	s->sleep_time = timestamp;
 }
 
-uint64_t get_poll_thread(uint64_t thread_id) {
+uint64_t get_poll_thread(uint64_t thread_id, uint64_t timestamp, uint64_t* sleep_time) {
 	uint64_t result;
 	thread_state_t* s = find_thread(thread_id);
+	if (!s) 
+		s = start_record_unknown_thread(thread_id);
+	*sleep_time = timestamp - s->waiting_from_time;
 	result = s->pollfd;
 	s->waiting_pollfd = 0;
 	s->pollfd = NOPOLL;

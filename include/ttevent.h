@@ -25,23 +25,19 @@ struct thread_create {
 	uint64_t timestamp;
 }; // sched_wakeup_new
 
-struct thread_wait_futex {
+struct thread_enter_futex {
 	uint64_t thread_id;
 	uint64_t resource_id;
 	uint64_t timestamp;
-}; // sys_futex with op 80
+}; // sys_futex enter
 
-struct thread_get_futex {
+struct thread_exit_futex {
 	uint64_t thread_id;
 	uint64_t resource_id;
+	uint64_t retval;
+	uint64_t sleep_time;
 	uint64_t timestamp;
-}; // sys_futex returning 0x0 and its last op is 80
-
-struct thread_release_futex {
-	uint64_t thread_id;
-	uint64_t resource_id;
-	uint64_t timestamp;
-}; // sys_futex with op 81
+}; // sys_futex exit
 
 struct thread_enter_poll {
 	uint64_t thread_id;
@@ -52,6 +48,7 @@ struct thread_enter_poll {
 struct thread_exit_poll {
 	uint64_t thread_id;
 	uint64_t resource_id;
+	uint64_t sleep_time;
 	uint64_t timestamp;
 }; // sys_poll exit
 
@@ -73,9 +70,8 @@ struct thread_exit {
 
 typedef enum {
 	THREAD_CREATE,
-	THREAD_WAIT_FUTEX,
-	THREAD_GET_FUTEX,
-	THREAD_RELEASE_FUTEX,
+	THREAD_ENTER_FUTEX,
+	THREAD_EXIT_FUTEX,
 	THREAD_ENTER_POLL,
 	THREAD_EXIT_POLL,
 	THREAD_SLEEP,
@@ -86,9 +82,8 @@ typedef struct thread_event {
 	event_type_t type;
 	union {
 		struct thread_create thread_create;
-		struct thread_wait_futex thread_wait_futex;
-		struct thread_get_futex thread_get_futex;
-		struct thread_release_futex thread_release_futex;
+		struct thread_enter_futex thread_enter_futex;
+		struct thread_exit_futex thread_exit_futex;
 		struct thread_enter_poll thread_enter_poll;
 		struct thread_exit_poll thread_exit_poll;
 		struct thread_sleep thread_sleep;
@@ -114,11 +109,11 @@ void print_thread_event(thread_event_t* event);
 typedef struct event_node_t {
 	thread_event_t* event;
 	struct event_node_t* next;
+	struct event_node_t* prev;
 } event_node_t; // Event linked list node type
 typedef struct event_linked_list_t {
 	event_node_t* head;
 	event_node_t* tail;
-	int length;
 } event_linked_list_t; // Event linked list type
 
 // Create and initialize an event linked list
@@ -128,5 +123,11 @@ void insert_event_node_to_tail(event_linked_list_t* list, thread_event_t* event)
 // Insert a node to the tail of an event linked list, and return
 // the node to edit
 event_node_t* create_thread_event(event_linked_list_t* list);
+// Remove a node from tail
+void remove_event_node_from_tail(event_linked_list_t* list);
+// Check list empty
+int is_event_linkded_list_empty(event_linked_list_t* list);
+// Dump linked list for debugging
+void dump_event_linked_list(event_linked_list_t* list);
 
 #endif

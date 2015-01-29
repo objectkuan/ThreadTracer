@@ -21,12 +21,14 @@ typedef void (*handler_t)(const char* buf);
 
 /**
  * ./filter pid mode infile
- * mode: 
+ * mode:
+ *    Without PID filtered
  *    0 only print
- *    1 only print, with pid filtered
- *    2 print event for each trace log line
- *    4 print subprocesses
- *    8 print grouped events
+ *    With PID filtered
+ *    1 only print
+ *    2 print event, for each trace log line
+ *    4 print subprocesses, for each trace log line
+ *    8 print grouped events, for each trace log line
  */
 int main(int argc, char** args) {
 	char buf[MAX_LINE];

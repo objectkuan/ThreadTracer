@@ -51,11 +51,9 @@ thread_state_t* start_record_thread(uint64_t thread_id);
 void sleep_thread(uint64_t thread_id, uint64_t timestamp);
 void wakeup_thread(uint64_t thread_id, uint64_t timestamp);
 void wait_futex_thread(uint64_t thread_id, uint64_t resource_id, uint64_t timestamp);
-void start_releasing_futex_thread(uint64_t thread_id, uint64_t resource_id);
-void end_releasing_futex_thread(uint64_t thread_id);
-uint64_t get_futex_thread(uint64_t thread_id);
+uint64_t get_futex_thread(uint64_t thread_id, uint64_t timestamp, uint64_t* sleep_time);
 void wait_poll_thread(uint64_t thread_id, uint64_t pollfd, uint64_t timestamp);
-uint64_t get_poll_thread(uint64_t thread_id);
+uint64_t get_poll_thread(uint64_t thread_id, uint64_t timestamp, uint64_t* sleep_time);
 void switch_thread(uint64_t prev_thread_id, uint64_t next_thread_id);
 void exit_thread(uint64_t thread_id);
 

@@ -184,7 +184,7 @@ void parse_event(const char* buf) {
 		uint64_t timestamp = get_timestamp(buf);
 
 		// Filtering
-		if (!is_subprocess(from_thread_id) && !is_subprocess(to_thread_id))
+		if (!is_subprocess(from_thread_id) || !is_subprocess(to_thread_id))
 			goto filtered_out;
 		
 		// Event THREAD_WAKEUP
@@ -199,6 +199,7 @@ void parse_event(const char* buf) {
 		wakeup_thread(to_thread_id, timestamp);
 
 		log_event("%" PRId64 " WAKEUP %" PRId64 " %" PRId64 "\n", timestamp, from_thread_id, to_thread_id);
+		print_line(buf);
 	} else if (compare_traced_function(buf, "sys_nanosleep")) {
 		int traced_function_offset = get_traced_function_offset(buf);
 		int tail_offset = traced_function_offset + 13; // traced_function_offset + strlen("sys_nanosleep")
@@ -238,101 +239,52 @@ void parse_event(const char* buf) {
 			int opcode = 0;
 			get_futex_args_sys_futex(buf, &resource, &opcode);
 			assert(resource != 0);
-			switch (opcode & 0x7f) {
-				case 0: // wait for mutex
-				{
-					
-					// Filtering
-					if (!is_subprocess(thread_id))
-						goto filtered_out;
-		
-					// Event THREAD_WAIT_FUTEX
-					event_node_t* node = create_thread_event(event_linked_list);
-					thread_event_t* event = node->event;
-					event->type = THREAD_WAIT_FUTEX;
-					event->event.thread_wait_futex.thread_id = thread_id;
-					event->event.thread_wait_futex.resource_id = resource;
-					event->event.thread_wait_futex.timestamp = timestamp;
-					insert_thread_event(event);
-					insert_futex_event(event);
 
-					wait_futex_thread(thread_id, resource, timestamp);
-					log_event("%" PRId64 " WAIT_FUTEX %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
-					print_line(buf);
-					break;
-				}
-				case 1: // release mutex
-				{
-					// Event THREAD_RELEASE_FUTEX
-					event_node_t* node = create_thread_event(event_linked_list);
-					
-					// Filtering
-					if (!is_subprocess(thread_id))
-						goto filtered_out;
+			// Filtering
+			if (!is_subprocess(thread_id))
+				goto filtered_out;
 
-					thread_event_t* event = node->event;
-					event->type = THREAD_RELEASE_FUTEX;
-					event->event.thread_release_futex.thread_id = thread_id;
-					event->event.thread_release_futex.resource_id = resource;
-					event->event.thread_release_futex.timestamp = timestamp;
-					insert_thread_event(event);
-					insert_futex_event(event);
+			// Event THREAD_ENTER_FUTEX
+			event_node_t* node = create_thread_event(event_linked_list);
+			thread_event_t* event = node->event;
+			event->type = THREAD_ENTER_FUTEX;
+			event->event.thread_enter_futex.thread_id = thread_id;
+			event->event.thread_enter_futex.resource_id = resource;
+			event->event.thread_enter_futex.timestamp = timestamp;
+			insert_thread_event(event);
+			insert_futex_event(event);
 
-					start_releasing_futex_thread(thread_id, resource);
-
-					log_event("%" PRId64 " RELEASE_FUTEX %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
-					print_line(buf);
-					break;
-				}
-				default:
-					// Filtering
-					if (!is_subprocess(thread_id))
-						goto filtered_out;
-
-					log_event("%" PRId64 " RELEASE_FUTEX %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
-					print_line(buf);
-					//printf("%s", buf);
-					//fflush(stdout);
-					//assert(0);
-					break;
-			}
+			wait_futex_thread(thread_id, resource, timestamp);
+			log_event("%" PRId64 " WAIT_FUTEX %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
+			print_line(buf);
 		} else {
 			// Return from sys_futex
 			uint64_t thread_id = get_subject_thread_id(buf);
 			int64_t retval = get_futex_retval_sys_futex(buf);
+			uint64_t sleep_time = 0;
 			
 			// Filtering
 			if (!is_subprocess(thread_id))
 				goto filtered_out;
 
+			get_futex_thread(thread_id, timestamp, &sleep_time);
 			thread_state_t* s = find_thread(thread_id);
 			assert(s);
-			assert(!(s->waiting_futex && s->releasing_futex));
-			if (s->waiting_futex) {
-				// get futex
-				//assert(retval == 0 || retval == -11);
-				if (retval == 0 || retval == -11) {
-					uint64_t resource = get_futex_thread(thread_id);
 
-					// Event THREAD_GET_FUTEX
-					event_node_t* node = create_thread_event(event_linked_list);
-					thread_event_t* event = node->event;
-					event->type = THREAD_GET_FUTEX;
-					event->event.thread_get_futex.thread_id = thread_id;
-					event->event.thread_get_futex.resource_id = resource;
-					event->event.thread_get_futex.timestamp = timestamp;
-					insert_thread_event(event);
-					insert_futex_event(event);
+			// Event THREAD_EXIT_FUTEX
+			event_node_t* node = create_thread_event(event_linked_list);
+			thread_event_t* event = node->event;
+			event->type = THREAD_EXIT_FUTEX;
+			event->event.thread_exit_futex.thread_id = thread_id;
+			event->event.thread_exit_futex.resource_id = s->futex;
+			event->event.thread_exit_futex.timestamp = timestamp;
+			event->event.thread_exit_futex.retval = retval;
+			event->event.thread_exit_futex.sleep_time = sleep_time;
+			insert_thread_event(event);
+			insert_futex_event(event);
 
-					log_event("%" PRId64 " GET_FUTEX %" PRId64 "\n", timestamp, thread_id);
-					print_line(buf);
-				}
-			} else if (s->releasing_futex) {
-				// end releasing futex
-				end_releasing_futex_thread(thread_id);
-				log_event("%" PRId64 " - WAKE_UP %" PRId64 " %d others\n", timestamp, thread_id, retval);
-				print_line(buf);
-			}
+			log_event("%" PRId64 " GET_FUTEX %" PRId64 "\n", timestamp, thread_id);
+			print_line(buf);
 		}		
 	} else if (compare_traced_function(buf, "sched_process_exit")) {
 		uint64_t timestamp = get_timestamp(buf);
@@ -384,22 +336,23 @@ void parse_event(const char* buf) {
 			// Return from sys_poll
 			uint64_t thread_id = get_subject_thread_id(buf);
 			uint64_t pollfd;
+			uint64_t sleep_time = 0;
 
 			// Filtering
 			if (!is_subprocess(thread_id))
 				goto filtered_out;
 
-			pollfd = get_poll_thread(thread_id);
+			pollfd = get_poll_thread(thread_id, timestamp, &sleep_time);
 			// Event THREAD_WAIT_FUTEX
 			event_node_t* node = create_thread_event(event_linked_list);
 			thread_event_t* event = node->event;
 			event->type = THREAD_EXIT_POLL;
 			event->event.thread_exit_poll.thread_id = thread_id;
 			event->event.thread_exit_poll.resource_id = pollfd;
+			event->event.thread_exit_poll.sleep_time = sleep_time;
 			event->event.thread_exit_poll.timestamp = timestamp;
 			insert_thread_event(event);
 			insert_poll_event(event);
-
 		}
 	} else if (compare_traced_function(buf, "sched_switch")) {
 		goto not_match;

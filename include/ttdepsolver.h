@@ -57,7 +57,6 @@ void insert_poll_event(thread_event_t* event);
 // from timestamp `from` to `to`
 event_linked_list_t* extrace_get_futex_events_in_range(uint64_t thread_id, 
 		uint64_t from, uint64_t to);
-thread_event_t* get_futex_release_event(thread_event_t* get_futex_event);
 
 // For debugging
 void dump_all_event_lists();
