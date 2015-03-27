@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include "ttevent.h"
+#include "ttthread_state.h"
 
 /**
  * We use two list to record the trace events. The first a list of events 

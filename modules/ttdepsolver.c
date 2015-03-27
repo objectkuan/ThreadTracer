@@ -71,6 +71,7 @@ void insert_thread_event(thread_event_t* event) {
 			assert(0);
 	}
 	list = find_event_list_by_thread(thread_id);
+#if 0
 	// Skip the nonsense enter/exit pair
 	if (!is_event_linkded_list_empty(list->list) &&
 		(list->list->tail->event->type == THREAD_ENTER_POLL &&
@@ -121,6 +122,7 @@ void insert_thread_event(thread_event_t* event) {
 		list->amount--;
 		return;
 	}
+#endif
 
 	//if (list->amount < MAX_THREAD_EVENTS) {
 		insert_event_node_to_tail(list->list, event);
@@ -200,7 +202,7 @@ void dump_all_event_lists() {
 	printf("-------------------------------\n");
 	for (i = 0; i < thread_event_list_len; i++) {
 		thread_event_list_t* list = &(thread_event_lists[i]);
-		printf("\tThread %" PRId64 " (%d)\n", list->thread_id, list->amount);
+		printf("\tThread %" PRId64 " (%d %s)\n", list->thread_id, list->amount, find_thread(list->thread_id)->thread_name);
 		for (node = list->list->head->next; node; node = node->next) {
 			print_thread_event(node->event);
 		}

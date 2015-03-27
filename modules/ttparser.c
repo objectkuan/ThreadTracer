@@ -21,6 +21,7 @@ uint64_t get_timestamp(const char* buf) {
 	const char* c;
 	for (c = buf + TIMESTAMP_OFFSET; *c != ':'; ++c) {
 		if (*c == '.') continue;
+		if (*c < '0' || *c > '9') continue;
 		result = result * 10 + (*c - '0');
 	}
 	if (result < last_time)
@@ -36,6 +37,13 @@ uint64_t get_subject_thread_id(const char* buf) {
 		result = result * 10 + *c - '0';
 	}
 	return result;
+}
+void get_subject_thread_name(const char* buf, char* name) {
+	int i = 0, j = 0;
+	while (buf[i++] == ' ');
+	for (i--; i < 16; i++, j++)
+		name[j] = buf[i];
+	name[j] = '\0';
 }
 
 uint64_t get_object_thread_id(const char* buf_with_offset) {
@@ -184,7 +192,7 @@ void parse_event(const char* buf) {
 		uint64_t timestamp = get_timestamp(buf);
 
 		// Filtering
-		if (!is_subprocess(from_thread_id) || !is_subprocess(to_thread_id))
+		if (!is_subprocess(to_thread_id))
 			goto filtered_out;
 		
 		// Event THREAD_WAKEUP
@@ -289,6 +297,7 @@ void parse_event(const char* buf) {
 	} else if (compare_traced_function(buf, "sched_process_exit")) {
 		uint64_t timestamp = get_timestamp(buf);
 		uint64_t thread_id = get_subject_thread_id(buf);
+		char thread_name[256];
 		
 		// Filtering
 		if (!is_subprocess(thread_id))
@@ -301,6 +310,10 @@ void parse_event(const char* buf) {
 		event->event.thread_exit.thread_id = thread_id;
 		event->event.thread_exit.timestamp = timestamp;
 		insert_thread_event(event);
+		
+		// Name the thread
+		get_subject_thread_name(buf, thread_name);
+		name_thread(thread_id, thread_name);
 
 		exit_thread(thread_id);
 		log_event("%" PRId64 " EXIT %" PRId64 "\n", timestamp, thread_id);
@@ -354,6 +367,7 @@ void parse_event(const char* buf) {
 			insert_thread_event(event);
 			insert_poll_event(event);
 		}
+		print_line(buf);
 	} else if (compare_traced_function(buf, "sched_switch")) {
 		goto not_match;
 		// TODO: should I care about switching

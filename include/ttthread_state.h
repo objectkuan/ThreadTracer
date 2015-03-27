@@ -2,6 +2,7 @@
 #define TT_THREAD_STATE_
 
 #include <stdio.h>
+#include <string.h>
 #include <inttypes.h>
 #include <assert.h>
 
@@ -19,6 +20,7 @@ typedef struct thread_event thread_event_t;
 typedef struct thread_state {
 	uint64_t thread_id;
 	thread_running_state_t state;
+	char thread_name[256];
 
 	/* Resource waiting */
 	uint64_t waiting_from_time;
@@ -45,6 +47,7 @@ int thread_amount;
 
 // Return a thread's state with id `thread_id`
 thread_state_t* find_thread(uint64_t thread_id);
+thread_state_t* name_thread(uint64_t thread_id, char* thread_name);
 
 // Thread event interface functions.
 thread_state_t* start_record_thread(uint64_t thread_id);

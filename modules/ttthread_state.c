@@ -13,6 +13,7 @@ thread_state_t* start_record_thread(uint64_t thread_id) {
 	state->waiting_pollfd = 0;
 	state->waiting_from_time = 0;
 	state->sleep_time = 0;
+	state->thread_name[0] = '\0';
 	++thread_amount;
 	return state;
 }
@@ -28,6 +29,16 @@ thread_state_t* find_thread(uint64_t thread_id) {
 			return &(thread_states[i]);
 	}
 	return NULL;
+}
+
+thread_state_t* name_thread(uint64_t thread_id, char* thread_name) {
+	int i;
+	thread_state_t* state = find_thread(thread_id);
+	if (!state) return state;
+	for (i = 0; i <= strlen(thread_name); i++) {
+		state->thread_name[i] = thread_name[i];
+	}
+	return state;
 }
 
 thread_state_t* change_thread_state(uint64_t thread_id, thread_running_state_t state) {

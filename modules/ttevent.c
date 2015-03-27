@@ -22,7 +22,7 @@ void print_thread_event(thread_event_t* event) {
 		}
 		case THREAD_EXIT_FUTEX:
 		{
-			printf("\t\t%" PRId64 " EXIT_FUTEX %" PRId64 " %" PRId64 " SLT%" PRId64 "\n", 
+			printf("\t\t%" PRId64 " EXIT_FUTEX %" PRId64 " %" PRId64 " SLT: %" PRId64 "\n", 
 				event->event.thread_exit_futex.timestamp, 
 				event->event.thread_exit_futex.thread_id,
 				event->event.thread_exit_futex.retval,
@@ -41,7 +41,7 @@ void print_thread_event(thread_event_t* event) {
 		}
 		case THREAD_EXIT_POLL:
 		{
-			printf("\t\t%" PRId64 " EXIT_POLL %" PRId64 " SLT%" PRId64 "\n", 
+			printf("\t\t%" PRId64 " EXIT_POLL %" PRId64 " SLT: %" PRId64 "\n", 
 				event->event.thread_exit_poll.timestamp, 
 				event->event.thread_exit_poll.thread_id,
 				event->event.thread_exit_poll.sleep_time
