@@ -57,5 +57,10 @@ fi
 
 echo 1 > $TRACEDIR/tracing_on
 echo 0 > $TRACEDIR/trace
-./filter $PID 1 $TRACEDIR/trace_pipe > $PID &
+./filter $PID 1 $TRACEDIR/trace_pipe > ball.3 &
+
+# perf's place
+# perf record -e ref-cycles --call-graph dwarf -F 97 -p $PID & 
+# echo $! > perf.pid
+
 exec "$binfile"

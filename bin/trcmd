@@ -2,4 +2,9 @@
 source ./trconfig.sh
 cmd="./trace-cmd $@"
 bash -c "$cmd"
+
+echo "Finished"
 echo 0 > $TRACEDIR/tracing_on
+
+# perf's place
+# kill `cat perf.pid`
