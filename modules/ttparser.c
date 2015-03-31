@@ -45,6 +45,9 @@ void get_subject_thread_name(const char* buf, char* name) {
 		name[j] = buf[i];
 	name[j] = '\0';
 }
+int name_invalid(const char* name) {
+	return (strcmp(name, "<...>") == 0);
+}
 
 uint64_t get_object_thread_id(const char* buf_with_offset) {
 	const char* sub = strstr(buf_with_offset, "pid=");
@@ -190,6 +193,7 @@ void parse_event(const char* buf) {
 		uint64_t from_thread_id = get_subject_thread_id(buf);
 		uint64_t to_thread_id = get_thread_wakeup_wakenup_thread_id(buf);
 		uint64_t timestamp = get_timestamp(buf);
+		char thread_name[256];
 
 		// Filtering
 		if (!is_subprocess(to_thread_id))
@@ -203,6 +207,11 @@ void parse_event(const char* buf) {
 		event->event.thread_wakeup.to_thread_id = to_thread_id;
 		event->event.thread_wakeup.timestamp = timestamp;
 		insert_thread_event(event);
+
+		// Name the thread
+		get_subject_thread_name(buf, thread_name);
+		if (!name_invalid(thread_name))
+			name_thread(from_thread_id, thread_name);
 
 		wakeup_thread(to_thread_id, timestamp);
 
@@ -313,7 +322,8 @@ void parse_event(const char* buf) {
 		
 		// Name the thread
 		get_subject_thread_name(buf, thread_name);
-		name_thread(thread_id, thread_name);
+		if (!name_invalid(thread_name))
+			name_thread(thread_id, thread_name);
 
 		exit_thread(thread_id);
 		log_event("%" PRId64 " EXIT %" PRId64 "\n", timestamp, thread_id);
