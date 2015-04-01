@@ -1,5 +1,3 @@
-bin/3on6
-bin/filter
-bin/tmut
-bin/deadlock
 *.swp
+backend/bin/samples/*
+frontend/node_modules
