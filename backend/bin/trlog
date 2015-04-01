@@ -1,0 +1,4 @@
+#!/bin/bash
+
+infile="/home/hjq/playground/mutex/bin/trace.log"
+./filter $1 1 $infile

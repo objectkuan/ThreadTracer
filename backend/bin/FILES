@@ -1,0 +1,20 @@
+----------
+Main files
+----------
+filter
+The main binary file to take the trace event character stream as input, and filter the contents. It transforms the character information to structuring format.
+
+trace-cmd
+A script file wrapping filter, with ftrace and perf settings and bootings.
+
+trcmd
+A script file wrapping trace-cmd, with afterwards tasks.
+
+----------
+Side files
+----------
+checktime.py
+Check whether backwards timestamp pairs exist.
+
+clrtrace.sh
+Clear the ftrace pipe.

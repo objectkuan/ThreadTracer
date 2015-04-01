@@ -1,0 +1,69 @@
+#!/bin/bash
+source ./trconfig.sh
+
+# clear everything
+echo "" > $TRACEDIR/set_ftrace_pid
+echo 0 > $TRACEDIR/options/userstacktrace
+echo 0 > $TRACEDIR/options/stacktrace
+killall -9 filter
+
+# trace event
+echo "" > $TRACEDIR/set_event
+#    pause
+trace_event syscalls:sys_exit_pause
+trace_event syscalls:sys_enter_pause
+#    sleep
+trace_event syscalls:sys_exit_nanosleep
+trace_event syscalls:sys_enter_nanosleep
+trace_event syscalls:sys_exit_clock_nanosleep
+trace_event syscalls:sys_enter_clock_nanosleep
+#    wakeup
+trace_event sched:sched_wakeup_new
+trace_event sched:sched_wakeup
+#    exit
+trace_event sched:sched_process_exit
+#    futex
+trace_event syscalls:sys_enter_futex
+trace_event syscalls:sys_exit_futex
+#    poll
+trace_event syscalls:sys_enter_poll
+trace_event syscalls:sys_exit_poll
+#    scheduler switch
+# trace_event sched:sched_switch
+
+
+# clear everything
+echo nop > $TRACEDIR/current_tracer
+echo 0 > $TRACEDIR/tracing_on
+echo 0 > $TRACEDIR/trace
+
+
+
+# get the binary file (the last part of the command)
+binfile="$@"
+# binfile=${binfile##* }
+# only trace current process
+PID=$$
+echo $PID >> $TRACEDIR/set_ftrace_pid
+
+if [[ $PINCPU -eq 1 ]]; then
+	echo "Pinned to CPU 0."
+	taskset -pc 0 $PID
+	echo 1 > $TRACEDIR/tracing_cpumask
+else
+	echo "Bouncing between cpus."
+	echo ff > $TRACEDIR/tracing_cpumask
+fi
+
+echo 1 > $TRACEDIR/tracing_on
+echo 0 > $TRACEDIR/trace
+
+filter_option=0
+echo "./filter $PID $filter_option $TRACEDIR/trace_pipe"
+./filter $PID $filter_option $TRACEDIR/trace_pipe > ball.3 &
+
+# perf's place
+# perf record -e ref-cycles --call-graph dwarf -F 97 -p $PID & 
+# echo $! > perf.pid
+
+exec "$binfile"
