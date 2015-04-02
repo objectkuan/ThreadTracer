@@ -1,5 +1,6 @@
 #!/bin/bash
-source ./trconfig.sh
+CURDIR=$(cd `dirname $0`; pwd)
+source $CURDIR/trconfig.sh
 
 # clear everything
 echo "" > $TRACEDIR/set_ftrace_pid
@@ -10,16 +11,16 @@ killall -9 filter
 # trace event
 echo "" > $TRACEDIR/set_event
 #    pause
-trace_event syscalls:sys_exit_pause
-trace_event syscalls:sys_enter_pause
+# trace_event syscalls:sys_exit_pause
+# trace_event syscalls:sys_enter_pause
 #    sleep
-trace_event syscalls:sys_exit_nanosleep
-trace_event syscalls:sys_enter_nanosleep
-trace_event syscalls:sys_exit_clock_nanosleep
-trace_event syscalls:sys_enter_clock_nanosleep
+# trace_event syscalls:sys_exit_nanosleep
+# trace_event syscalls:sys_enter_nanosleep
+# trace_event syscalls:sys_exit_clock_nanosleep
+# trace_event syscalls:sys_enter_clock_nanosleep
 #    wakeup
 trace_event sched:sched_wakeup_new
-trace_event sched:sched_process_fork
+# trace_event sched:sched_process_fork
 trace_event sched:sched_wakeup
 #    exit
 trace_event sched:sched_process_exit
@@ -31,23 +32,26 @@ trace_event syscalls:sys_enter_poll
 trace_event syscalls:sys_exit_poll
 #    scheduler switch
 # trace_event sched:sched_switch
-echo "do_fork" > $TRACEDIR/set_ftrace_filter
-
-PID=$1
+# echo "do_fork" > $TRACEDIR/set_ftrace_filter
 
 # clear everything
-echo function > $TRACEDIR/current_tracer
+echo nop > $TRACEDIR/current_tracer
 echo 0 > $TRACEDIR/tracing_on
 echo 0 > $TRACEDIR/trace
 
-echo $PID >> $TRACEDIR/set_ftrace_pid
+TRACED_PIDS_FILE=.traced_pids
+touch $TRACED_PIDS_FILE
+cat $TRACED_PIDS_FILE | xargs -i echo {} >> $TRACEDIR/set_ftrace_pid
+# PID=$1
+# echo $PID >> $TRACEDIR/set_ftrace_pid
 
 echo 1 > $TRACEDIR/tracing_on
 echo 0 > $TRACEDIR/trace
 
 filter_option=0
-echo "./filter $PID $filter_option $TRACEDIR/trace_pipe"
-./filter $PID $filter_option $TRACEDIR/trace_pipe > ball.3
+final_cmd="./filter $CURDIR/$TRACED_PIDS_FILE $filter_option $TRACEDIR/trace_pipe > $CURDIR/ball.3"
+echo $final_cmd
+bash -c "cd $CURDIR && $final_cmd"
 
 # perf's place
 # perf record -e ref-cycles --call-graph dwarf -F 97 -p $PID & 

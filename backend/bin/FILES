@@ -7,6 +7,9 @@ The main binary file to take the trace event character stream as input, and filt
 trace-cmd
 A script file wrapping filter, with ftrace and perf settings and bootings.
 
+trace-cmd-live
+A script file wrapping filter, design for live tracing.
+
 trcmd
 A script file wrapping trace-cmd, with afterwards tasks.
 

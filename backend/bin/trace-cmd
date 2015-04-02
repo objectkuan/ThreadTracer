@@ -1,5 +1,6 @@
 #!/bin/bash
-source ./trconfig.sh
+CURDIR=$(cd `dirname $0`; pwd)
+source $CURDIR/trconfig.sh
 
 # clear everything
 echo "" > $TRACEDIR/set_ftrace_pid
@@ -10,13 +11,13 @@ killall -9 filter
 # trace event
 echo "" > $TRACEDIR/set_event
 #    pause
-trace_event syscalls:sys_exit_pause
-trace_event syscalls:sys_enter_pause
+# trace_event syscalls:sys_exit_pause
+# trace_event syscalls:sys_enter_pause
 #    sleep
-trace_event syscalls:sys_exit_nanosleep
-trace_event syscalls:sys_enter_nanosleep
-trace_event syscalls:sys_exit_clock_nanosleep
-trace_event syscalls:sys_enter_clock_nanosleep
+# trace_event syscalls:sys_exit_nanosleep
+# trace_event syscalls:sys_enter_nanosleep
+# trace_event syscalls:sys_exit_clock_nanosleep
+# trace_event syscalls:sys_enter_clock_nanosleep
 #    wakeup
 trace_event sched:sched_wakeup_new
 trace_event sched:sched_wakeup

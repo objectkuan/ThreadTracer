@@ -34,7 +34,7 @@ inline static get_traced_function_offset(const char* buf) {
 #define MODE_MASK_EVENT_STAT	8
 static int run_mode;
 
-void init_parser(uint64_t pid, int run_mode);
+void init_parser(const uint64_t* pids, int n, int run_mode);
 void parse_event(const char* buf);
 static inline int in_hex_range(char c) {
 	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
@@ -47,7 +47,6 @@ static event_linked_list_t* event_linked_list = NULL;
  * a lot of events that is not related to the process we care.
  */
 #define MAX_SUBPROCESS 1024
-uint64_t root_pid; // the root process we care
 uint64_t subprocess_amount;
 uint64_t subprocess_ids[MAX_SUBPROCESS];
 

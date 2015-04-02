@@ -1,3 +1,7 @@
 *.swp
+
 backend/bin/samples/*
+backend/bin/filter
+backend/bin/.*
+
 frontend/node_modules

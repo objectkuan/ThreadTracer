@@ -153,13 +153,15 @@ uint64_t get_futex_retval_sys_futex(const char* buf) {
 }
 
 
-void init_parser(uint64_t pid, int mode) {
+void init_parser(const uint64_t* pids, int n, int mode) {
+	int i;
 	if (!event_linked_list)
 		event_linked_list = init_event_linked_list();
-	root_pid = pid;
 	subprocess_amount = 0;
 	run_mode = mode;
-	push_subprocess(pid);
+	for (i = 0; i < n; i++) {
+		push_subprocess(pids[i]);
+	}
 }
 
 
