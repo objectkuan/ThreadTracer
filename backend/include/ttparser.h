@@ -83,7 +83,6 @@ static inline void print_line(const char* buf) {
 	if (run_mode & MODE_MASK_RAW) {
 		printf("%s", buf);
 		fflush(stdout);
-
 	}
 
 }

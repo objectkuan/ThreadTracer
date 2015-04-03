@@ -1,0 +1,7 @@
+#!/bin/bash
+CURDIR=$(cd `dirname $0`; pwd)
+source $CURDIR/trconfig.sh
+echo "" > $TRACED_PIDS_FILE
+echo $1 | tr ',' '\n' | while read pid; do
+	echo $pid >> $TRACED_PIDS_FILE;
+done

@@ -1,4 +1,6 @@
 #!/bin/bash
 
-infile="/home/hjq/playground/mutex/bin/trace.log"
+CURDIR=$(cd `dirname $0`; pwd)
+infile="$CURDIR/trace.log"
+echo $infile
 ./filter $1 1 $infile

@@ -25,7 +25,7 @@ uint64_t get_timestamp(const char* buf) {
 		result = result * 10 + (*c - '0');
 	}
 	if (result < last_time)
-		printf("shit-shit %" PRId64 " < %" PRId64"\n", result, last_time);
+		printf("Reverse time %" PRId64 " < %" PRId64"\n", result, last_time);
 	last_time = result;
 	return result;
 }
