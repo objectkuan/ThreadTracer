@@ -2,6 +2,22 @@
 CURDIR=$(cd `dirname $0`; pwd)
 source $CURDIR/trconfig.sh
 echo "" > $TRACED_PIDS_FILE
-echo $1 | tr ',' '\n' | while read pid; do
+
+find_children() {
+	for pid in $(ps -ef | awk "{if ( \$3 == $1 ) { print \$2 }}")
+	do
+		echo $pid
+		find_children $pid
+	done
+}
+
+pid_list=$1
+IFS=', ' read -a pids <<< "$1"
+for pid in "${pids[@]}"
+do
+	pid_list=$pid_list","$(find_children $pid | tr '\n' ',')
+done
+
+echo $pid_list | tr ',' '\n' | uniq | while read pid; do
 	echo $pid >> $TRACED_PIDS_FILE;
 done
