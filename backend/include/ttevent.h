@@ -7,9 +7,6 @@
 #include <assert.h>
 #include <stdlib.h>
 
-// Debugging
-#define print_event(msg, args...) printf("[Filter] \t" msg, ## args);
-//#define print_event(msg, args...)
 
 
 /**
@@ -93,11 +90,6 @@ typedef struct thread_event {
 } thread_event_t; // the collection of events
 
 
-// Print a thread event to stdout
-void print_thread_event(thread_event_t* event);
-
-
-
 
 /* 
  * Event manager:
@@ -129,5 +121,18 @@ void remove_event_node_from_tail(event_linked_list_t* list);
 int is_event_linkded_list_empty(event_linked_list_t* list);
 // Dump linked list for debugging
 void dump_event_linked_list(event_linked_list_t* list);
+
+
+
+// Print frontend-friendly evevnts
+// #define PRINT_EVENT_PREFIX "[Filter] \t"
+#define PRINT_EVENT_PREFIX ""
+#define print_event(msg, args...) printf(PRINT_EVENT_PREFIX msg, ## args)
+
+// Print a thread event to a file
+void print_thread_event(thread_event_t* event, FILE* fp);
+// Print a thread event to stdout
+inline void print_thread_event_to_stdout(thread_event_t* event);
+
 
 #endif

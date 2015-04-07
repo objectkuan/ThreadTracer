@@ -2,5 +2,4 @@
 
 CURDIR=$(cd `dirname $0`; pwd)
 infile="$CURDIR/trace.log"
-echo $infile
-./filter $1 1 $infile
+./filter /tmp/.traced_pids 2 $infile

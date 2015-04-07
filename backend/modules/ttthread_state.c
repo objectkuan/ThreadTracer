@@ -41,6 +41,13 @@ thread_state_t* name_thread(uint64_t thread_id, char* thread_name) {
 	return state;
 }
 
+int name_changed(uint64_t thread_id, char* thread_name) {
+	int i;
+	thread_state_t* state = find_thread(thread_id);
+	if (!state) return 0;
+	return strcmp(state->thread_name, thread_name) != 0;
+}
+
 thread_state_t* change_thread_state(uint64_t thread_id, thread_running_state_t state) {
 	thread_state_t* s = find_thread(thread_id);
 	if (s == NULL) 

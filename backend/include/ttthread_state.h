@@ -48,6 +48,7 @@ int thread_amount;
 // Return a thread's state with id `thread_id`
 thread_state_t* find_thread(uint64_t thread_id);
 thread_state_t* name_thread(uint64_t thread_id, char* thread_name);
+int name_changed(uint64_t thread_id, char* thread_name);
 
 // Thread event interface functions.
 thread_state_t* start_record_thread(uint64_t thread_id);

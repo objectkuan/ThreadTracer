@@ -212,8 +212,12 @@ void parse_event(const char* buf) {
 
 		// Name the thread
 		get_subject_thread_name(buf, thread_name);
-		if (!name_invalid(thread_name))
+		if (!name_invalid(thread_name)) {
+			if (name_changed(from_thread_id, thread_name))
+				log_event("%" PRId64 " NAME_THREAD %" PRId64 " %s\n", timestamp, from_thread_id, thread_name);
+
 			name_thread(from_thread_id, thread_name);
+		}
 
 		wakeup_thread(to_thread_id, timestamp);
 
@@ -274,7 +278,7 @@ void parse_event(const char* buf) {
 			insert_futex_event(event);
 
 			wait_futex_thread(thread_id, resource, timestamp);
-			log_event("%" PRId64 " WAIT_FUTEX %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
+			log_event("%" PRId64 " ENTER_FUTEX %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
 			print_line(buf);
 		} else {
 			// Return from sys_futex
@@ -302,7 +306,10 @@ void parse_event(const char* buf) {
 			insert_thread_event(event);
 			insert_futex_event(event);
 
-			log_event("%" PRId64 " GET_FUTEX %" PRId64 "\n", timestamp, thread_id);
+			if (retval == -110)
+				log_event("%" PRId64 " EXIT_FUTEX_TIMEOUT %" PRId64 "\n", timestamp, thread_id);
+			else
+				log_event("%" PRId64 " EXIT_FUTEX %" PRId64 "\n", timestamp, thread_id);
 			print_line(buf);
 		}		
 	} else if (compare_traced_function(buf, "sched_process_exit")) {
@@ -346,7 +353,7 @@ void parse_event(const char* buf) {
 			if (!is_subprocess(thread_id))
 				goto filtered_out;
 
-			// Event THREAD_WAIT_FUTEX
+			// Event THREAD_ENTER_FUTEX
 			event_node_t* node = create_thread_event(event_linked_list);
 			thread_event_t* event = node->event;
 			event->type = THREAD_ENTER_POLL;
@@ -357,6 +364,7 @@ void parse_event(const char* buf) {
 			insert_poll_event(event);
 
 			wait_poll_thread(thread_id, resource, timestamp);
+			log_event("%" PRId64 " ENTER_POLL %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
 		} else {
 			// Return from sys_poll
 			uint64_t thread_id = get_subject_thread_id(buf);
@@ -368,7 +376,7 @@ void parse_event(const char* buf) {
 				goto filtered_out;
 
 			pollfd = get_poll_thread(thread_id, timestamp, &sleep_time);
-			// Event THREAD_WAIT_FUTEX
+			// Event THREAD_EXIT_FUTEX
 			event_node_t* node = create_thread_event(event_linked_list);
 			thread_event_t* event = node->event;
 			event->type = THREAD_EXIT_POLL;
@@ -378,6 +386,7 @@ void parse_event(const char* buf) {
 			event->event.thread_exit_poll.timestamp = timestamp;
 			insert_thread_event(event);
 			insert_poll_event(event);
+			log_event("%" PRId64 " EXIT_POLL %" PRId64 "\n", timestamp, thread_id);
 		}
 		print_line(buf);
 	} else if (compare_traced_function(buf, "sched_switch")) {

@@ -50,7 +50,7 @@ static event_linked_list_t* event_linked_list = NULL;
 uint64_t subprocess_amount;
 uint64_t subprocess_ids[MAX_SUBPROCESS];
 
-#define log_event(msg, args...) (run_mode & MODE_MASK_EVENT) && print_event(msg, ## args);
+#define log_event(msg, args...) (run_mode & MODE_MASK_EVENT) && print_event(msg, ## args)
 
 static int is_subprocess(uint64_t pid) {
 	int i;

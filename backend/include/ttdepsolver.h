@@ -13,7 +13,7 @@
  *    by its thread_id.
  * The futex_event_lists:
  *    Each futex_event_list records all the events that happened on a futex, 
- *    including GET_FUTEX, RELEASE_FUETX, WAIT_FUTEX.
+ *    including ENTER_FUTEX, EXIT_FUETX.
  */
 
 // TODO: may overflow

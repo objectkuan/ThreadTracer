@@ -56,12 +56,12 @@ else
 	echo ff > $TRACEDIR/tracing_cpumask
 fi
 
-echo 1 > $TRACEDIR/tracing_on
-echo 0 > $TRACEDIR/trace
-
 filter_option=0
 echo "./filter $PID $filter_option $TRACEDIR/trace_pipe"
 ./filter $PID $filter_option $TRACEDIR/trace_pipe > ball.3 &
+
+echo 1 > $TRACEDIR/tracing_on
+echo 0 > $TRACEDIR/trace
 
 # perf's place
 # perf record -e ref-cycles --call-graph dwarf -F 97 -p $PID & 

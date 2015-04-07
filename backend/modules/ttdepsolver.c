@@ -39,6 +39,7 @@ poll_event_list_t* find_event_list_by_pollfd(uint64_t pollfd) {
 
 
 void insert_thread_event(thread_event_t* event) {
+	return;
 	uint64_t thread_id;
 	thread_event_list_t* list;
 	// find the thread_id
@@ -71,7 +72,7 @@ void insert_thread_event(thread_event_t* event) {
 			assert(0);
 	}
 	list = find_event_list_by_thread(thread_id);
-#if 0
+
 	// Skip the nonsense enter/exit pair
 	if (!is_event_linkded_list_empty(list->list) &&
 		(list->list->tail->event->type == THREAD_ENTER_POLL &&
@@ -85,6 +86,7 @@ void insert_thread_event(thread_event_t* event) {
 		list->amount--;
 		return;
 	}
+#if 0
 	// Skip the timeout
 	if (!is_event_linkded_list_empty(list->list)) {
 		if (event->type == THREAD_EXIT_FUTEX &&
@@ -98,10 +100,11 @@ void insert_thread_event(thread_event_t* event) {
 			return;
 		}
 	}
+#endif
 	// Skip short time
 	if (!is_event_linkded_list_empty(list->list) &&
 		event->type == THREAD_EXIT_POLL &&
-		event->event.thread_exit_poll.sleep_time < 2000000) {
+		event->event.thread_exit_poll.sleep_time < 500000) {
 		assert(list->list->tail->event->type == THREAD_WAKEUP);
 		remove_event_node_from_tail(list->list);
 		list->amount--;
@@ -112,8 +115,8 @@ void insert_thread_event(thread_event_t* event) {
 	}
 	if (!is_event_linkded_list_empty(list->list) &&
 		event->type == THREAD_EXIT_FUTEX &&
-		event->event.thread_exit_futex.sleep_time < 2000000) {
-		printf("gigiwxx %" PRId64 "\n", event->event.thread_exit_futex.sleep_time);
+		event->event.thread_exit_futex.sleep_time < 500000) {
+		//printf("gigiwxx %" PRId64 "\n", event->event.thread_exit_futex.sleep_time);
 		assert(list->list->tail->event->type == THREAD_WAKEUP);
 		remove_event_node_from_tail(list->list);
 		list->amount--;
@@ -122,7 +125,6 @@ void insert_thread_event(thread_event_t* event) {
 		list->amount--;
 		return;
 	}
-#endif
 
 	//if (list->amount < MAX_THREAD_EVENTS) {
 		insert_event_node_to_tail(list->list, event);
@@ -134,6 +136,7 @@ void insert_thread_event(thread_event_t* event) {
 }
 
 void insert_futex_event(thread_event_t* event) {
+	return;
 	uint64_t futex;
 	futex_event_list_t* list;
 	// find the thread_id
@@ -158,6 +161,7 @@ void insert_futex_event(thread_event_t* event) {
 }
 
 void insert_poll_event (thread_event_t* event) {
+	return;
 	uint64_t pollfd;
 	poll_event_list_t* list;
 	// find the thread_id
@@ -204,7 +208,7 @@ void dump_all_event_lists() {
 		thread_event_list_t* list = &(thread_event_lists[i]);
 		printf("\tThread %" PRId64 " (%d %s)\n", list->thread_id, list->amount, find_thread(list->thread_id)->thread_name);
 		for (node = list->list->head->next; node; node = node->next) {
-			print_thread_event(node->event);
+			print_thread_event_to_stdout(node->event);
 		}
 	}
 	printf("-------------------------------\n");
@@ -214,7 +218,7 @@ void dump_all_event_lists() {
 		futex_event_list_t* list = &(futex_event_lists[i]);
 		printf("\tFutex %" PRId64 " (%d)\n", list->futex, list->amount);
 		for (node = list->list->head->next; node; node = node->next) {
-			print_thread_event(node->event);
+			print_thread_event_to_stdout(node->event);
 		}
 	}
 	printf("-------------------------------\n");
@@ -224,7 +228,7 @@ void dump_all_event_lists() {
 		poll_event_list_t* list = &(poll_event_lists[i]);
 		printf("\tPoll fd %" PRId64 " (%d)\n", list->pollfd, list->amount);
 		for (node = list->list->head->next; node; node = node->next) {
-			print_thread_event(node->event);
+			print_thread_event_to_stdout(node->event);
 		}
 	}
 	printf("=============================\n");

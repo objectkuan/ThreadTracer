@@ -45,8 +45,8 @@ int main(int argc, char** args) {
 	int mode = atoi(args[2]);
 	char* infile = args[3];
 
-	printf("pid in files: %s\n", pid_file);
 	printf("mode: %d\n", mode);
+	printf("pid in files: %s\n", pid_file);
 	
 	atexit (onexit);
 
@@ -57,13 +57,19 @@ int main(int argc, char** args) {
 	}
 
 	// Read pids
+	printf("[");
 	if ((fd_pid_file = fopen(pid_file, "r")) == NULL) {
 		fprintf(stderr, "Fail to read pid file %s\n", pid_file);
 		exit(1);
 	}
 	while (getline(&pid_line, &pid_line_len, fd_pid_file) != -1) {
-		pids[pid_amount++] = atoi(pid_line);
+		pids[pid_amount] = atoi(pid_line);
+		if (pids[pid_amount]) {
+			printf("%d,", pids[pid_amount]);
+			pid_amount++;
+		}
 	}
+	printf("0]\n");
 	fclose(fd_pid_file);
 	if (pid_line) free(pid_line);
 	
@@ -76,7 +82,7 @@ int main(int argc, char** args) {
 		if (fgets(buf, MAX_LINE, fd_trace_pipe)) {
 				handle(buf);
 		} else {
-			dump_all(1);
+			//dump_all(1);
 			break;
 		}
 	}
