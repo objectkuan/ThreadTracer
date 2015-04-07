@@ -95,7 +95,7 @@ function drawDownTriangle(centerX, centerY) {
     ctx.restore();
 }
 
-function drawArrow(fromX, fromY, toX, toY) {
+function drawArrow(fromX, fromY, toX, toY, color) {
 	var c = document.getElementById("myCanvas");
 	var ctx = c.getContext("2d");
 
@@ -104,7 +104,7 @@ function drawArrow(fromX, fromY, toX, toY) {
     var arrowAngle = toRadian(20);
 
     ctx.save();
-    ctx.strokeStyle = '#44d';
+    ctx.strokeStyle = (color == undefined ? '#44d' : color);
     // first part
     ctx.beginPath();
     ctx.setLineDash([]);
@@ -128,4 +128,10 @@ function drawText(x, y, size, text) {
 	var ctx = c.getContext("2d");
 	ctx.font = size + "px Arial";
 	ctx.fillText(text, x, y);
+}
+
+function clearCanvas() {
+    var c = document.getElementById("myCanvas");
+    var ctx = c.getContext("2d");
+    ctx.clearRect(0, 0, c.width, c.height);
 }
