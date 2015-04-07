@@ -76,4 +76,4 @@ function updateCheckList() {
         $('#display-json').html(JSON.stringify(checkedItems, null, '\t'));
     });
 }
-$(updateCheckList);
+$(refreshProcesses);

@@ -1,31 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="ThreadTracer">
-    <meta name="author" content="Object Ho">
-
-    <title>ThreadTracer</title>
-
-    <!-- Bootstrap Core CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Custom CSS -->
-    <link href="css/modern-business.css" rel="stylesheet">
-
-    <!-- Custom Fonts -->
-    <link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
+<%- include header.ejs %>
 
     <!-- jQuery -->
     <script src="js/jquery.js"></script>
@@ -40,94 +13,10 @@
     <script src="js/canvas/thread.js"></script>
     <script src="js/canvas/runsomething.js"></script>
     <script src="js/index.js"></script>
+    <script src="js/socket.io.js"></script>
 </head>
 
-    <!-- Navigation -->
-    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-        <div class="container">
-            <!-- Brand and toggle get grouped for better mobile display -->
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="index.html">ThreadTracer</a>
-            </div>
-            <!-- Collect the nav links, forms, and other content for toggling -->
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                <ul class="nav navbar-nav navbar-right">
-                    <li>
-                        <a href="about.html">About</a>
-                    </li>
-                    <li>
-                        <a href="services.html">Services</a>
-                    </li>
-                    <li>
-                        <a href="contact.html">Contact</a>
-                    </li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Portfolio <b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a href="portfolio-1-col.html">1 Column Portfolio</a>
-                            </li>
-                            <li>
-                                <a href="portfolio-2-col.html">2 Column Portfolio</a>
-                            </li>
-                            <li>
-                                <a href="portfolio-3-col.html">3 Column Portfolio</a>
-                            </li>
-                            <li>
-                                <a href="portfolio-4-col.html">4 Column Portfolio</a>
-                            </li>
-                            <li>
-                                <a href="portfolio-item.html">Single Portfolio Item</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="dropdown active">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Blog <b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a href="blog-home-1.html">Blog Home 1</a>
-                            </li>
-                            <li>
-                                <a href="blog-home-2.html">Blog Home 2</a>
-                            </li>
-                            <li class="active">
-                                <a href="blog-post.html">Blog Post</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Other Pages <b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a href="full-width.html">Full Width Page</a>
-                            </li>
-                            <li>
-                                <a href="sidebar.html">Sidebar Page</a>
-                            </li>
-                            <li>
-                                <a href="faq.html">FAQ</a>
-                            </li>
-                            <li>
-                                <a href="404.html">404</a>
-                            </li>
-                            <li>
-                                <a href="pricing.html">Pricing Table</a>
-                            </li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-            <!-- /.navbar-collapse -->
-        </div>
-        <!-- /.container -->
-    </nav>
-
+    <%- include navi.ejs %>
 
     <!-- Page Content -->
     <div class="container">
@@ -146,18 +35,35 @@
             <!-- Blog Post Content Column -->
             <div class="col-lg-8">
 
-                <!-- Blog Post -->
-                <div width="100%" height="400px" style="margin: 1px; padding 1px; border:1px solid #d3d3d3; overflow: hidden;">
-                    <canvas id="myCanvas" width="1000px" height="400px">
-                        Your browser does not support the HTML5 canvas tag.
-                    </canvas>
-                    <script>
-                        runNautilus();
-                    </script>
+                <!-- Thread States -->
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Thread states</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div width="100%" height="400px" style="margin: 1px; padding 1px; border:1px solid #d3d3d3; overflow: hidden;">
+                            <canvas id="myCanvas" width="1000px" height="400px">
+                                Your browser does not support the HTML5 canvas tag.
+                            </canvas>
+                            <script>
+                                runNautilus();
+                            </script>
+                        </div>
+                    </div>
                 </div>
-                <br>
-                <div>
-                    <a class="btn btn-primary" href="javascript: void();">Start Trace</a>
+                
+                <!-- Thread States -->
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <a class="accordion-toggle" data-toggle="collapse" href="#collapseProcessTree" aria-expanded="true"> Process tree </a>
+                        </h3>
+                    </div>
+                    <div id="collapseProcessTree" class="panel-collapse collapse" aria-expanded="true">
+                        <div class="panel-body">
+                            <textarea class="form-control" style="height: 400px; resize: none;"></textarea>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -165,44 +71,30 @@
             <div class="col-md-4">
 
                 <!-- Blog Search Well -->
-                <div class="well">
-                    <h4>Processes</h4>
-                    <ul id="process-list" class="list-group checked-list-box" style="height: 450px; overflow-y: scroll">
-                        <li class="list-group-item" title="haha">Cras justo odio</li>
-                        <li class="list-group-item" data-checked="true">Dapibus ac facilisis in</li>
-                        <li class="list-group-item">Morbi leo risus</li>
-                        <li class="list-group-item">Porta ac consectetur ac</li>
-                        <li class="list-group-item">Vestibulum at eros</li>
-                        <li class="list-group-item">Cras justo odio</li>
-                        <li class="list-group-item">Dapibus ac facilisis in</li>
-                        <li class="list-group-item">Morbi leo risus</li>
-                        <li class="list-group-item">Porta ac consectetur ac</li>
-                        <li class="list-group-item">Vestibulum at eros</li>
-                    </ul>
-                    <script type="text/javascript" src="js/checklist.js"></script>
-                    <br>
-                    <a class="btn btn-primary" href="javascript: refreshProcesses();">Refresh</a>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Processes</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="input-group">
+                            <input id="process-key-words" type="text" class="form-control">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default" type="button" onclick="filterProcesses();"><i class="fa fa-search"></i></button>
+                            </span>
+                        </div>
+                        <br>
+                        <ul id="process-list" class="list-group checked-list-box" style="height: 400px; overflow-y: scroll">
+                            <li class="list-group-item" title="haha">Cras justo odio</li>
+                            <li class="list-group-item" data-checked="true">Dapibus ac facilisis in</li>
+                        </ul>
+                        <script type="text/javascript" src="js/checklist.js"></script>
+                        <br>
+                        <a class="btn btn-default" href="javascript: refreshProcesses();">Reset</a>
+                        <a class="btn btn-success" href="javascript: startTrace();">Trace!</a>
+                    </div>
                 </div>
+
         </div>
         <!-- /.row -->
-        
-        <div class="row">
-        </div>
 
-        <hr>
-
-        <!-- Footer -->
-        <footer>
-            <div class="row">
-                <div class="col-lg-12">
-                    <p>Copyright &copy; ThreadTracer 2015</p>
-                </div>
-            </div>
-        </footer>
-
-    </div>
-    <!-- /.container -->
-
-</body>
-
-</html>
+<%- include footer.ejs %>
