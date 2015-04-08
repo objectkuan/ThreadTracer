@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "ttparser.h"
 #include <unistd.h>
+#include <sys/stat.h>
+#include "ttparser.h"
+#include "ttlogger.h"
 
 //#include "trace.inc"
 
@@ -21,14 +23,23 @@ typedef void (*handler_t)(const char* buf);
 
 /**
  * ./filter pidfile mode infile
- * mode:
- *    Without PID filtered
- *    0 only print
- *    With PID filtered
- *    1 only print
- *    2 print event, for each trace log line
- *    4 print subprocesses, for each trace log line
- *    8 print grouped events, for each trace log line
+ * pidfile:
+ *    A file specifying which pids should be traced
+ * mode: 
+ *    The filtering mode to apply
+ *       - Without PID filtered
+ *         0 0x0000 only print
+ *       - With PID filtered
+ *         1 0x0001 only print
+ *         2 0x0010 print event, for each trace log line
+ *         4 0x0100 print subprocesses, for each trace log line
+ *         8 0x1000 print grouped events, for each trace log line
+ * infile:
+ *    A file caontaining a stream of events, like the trace_pipe
+ * outdir:
+ *    A directory to hold the output files
+ * period:
+ *    A period of time in milliseconds that each output file cover
  */
 int main(int argc, char** args) {
 	char buf[MAX_LINE];
@@ -44,6 +55,8 @@ int main(int argc, char** args) {
 
 	int mode = atoi(args[2]);
 	char* infile = args[3];
+	char* outdir = args[4];
+	int period = atoi(args[5]);
 
 	printf("mode: %d\n", mode);
 	printf("pid in files: %s\n", pid_file);
@@ -72,8 +85,12 @@ int main(int argc, char** args) {
 	printf("0]\n");
 	fclose(fd_pid_file);
 	if (pid_line) free(pid_line);
-	
+
 	// Initialize parser
+	if (mkdir(outdir, S_IRUSR | S_IWUSR | S_IXUSR) == -1) {
+		fprintf(stderr, "Fail to create output directory %s\n", outdir);
+		exit(1);
+	}
 	init_parser(pids, pid_amount, mode);
 
 	// Say go, let's go
@@ -82,7 +99,8 @@ int main(int argc, char** args) {
 		if (fgets(buf, MAX_LINE, fd_trace_pipe)) {
 				handle(buf);
 		} else {
-			//dump_all(1);
+			print_all_subprocesses(stdout);
+			print_all_event_lists(stdout);
 			break;
 		}
 	}

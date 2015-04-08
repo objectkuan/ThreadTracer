@@ -61,7 +61,5 @@ uint64_t get_poll_thread(uint64_t thread_id, uint64_t timestamp, uint64_t* sleep
 void switch_thread(uint64_t prev_thread_id, uint64_t next_thread_id);
 void exit_thread(uint64_t thread_id);
 
-// Print all thread states to stdout
-void print_thread_states();
 
 #endif

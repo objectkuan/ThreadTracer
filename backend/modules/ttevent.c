@@ -1,10 +1,11 @@
 #include "ttevent.h"
 
-void print_thread_event(thread_event_t* event, FILE* fp) {
+int convert_thread_event_string(thread_event_t* event, char* result) {
+	int len = 0;
 	switch(event->type) {
 		case THREAD_CREATE:
 		{
-			fprintf(fp, "\t\t%" PRId64 " CREATE_WAKEUP %" PRId64 " %" PRId64 "\n", 
+			len = sprintf(result, "%" PRId64 " CREATE_WAKEUP %" PRId64 " %" PRId64, 
 				event->event.thread_create.timestamp, 
 				event->event.thread_create.parent_thread_id, 
 				event->event.thread_create.child_thread_id
@@ -13,7 +14,7 @@ void print_thread_event(thread_event_t* event, FILE* fp) {
 		}
 		case THREAD_ENTER_FUTEX:
 		{
-			fprintf(fp, "\t\t%" PRId64 " ENTER_FUTEX %" PRId64 " %" PRId64 "\n", 
+			len = sprintf(result, "%" PRId64 " ENTER_FUTEX %" PRId64 " %" PRId64, 
 				event->event.thread_enter_futex.timestamp, 
 				event->event.thread_enter_futex.thread_id, 
 				event->event.thread_enter_futex.resource_id
@@ -22,7 +23,7 @@ void print_thread_event(thread_event_t* event, FILE* fp) {
 		}
 		case THREAD_EXIT_FUTEX:
 		{
-			fprintf(fp, "\t\t%" PRId64 " EXIT_FUTEX %" PRId64 " %" PRId64 " SLT: %" PRId64 "\n", 
+			len = sprintf(result, "%" PRId64 " EXIT_FUTEX %" PRId64 " %" PRId64 " SLT: %" PRId64, 
 				event->event.thread_exit_futex.timestamp, 
 				event->event.thread_exit_futex.thread_id,
 				event->event.thread_exit_futex.retval,
@@ -32,7 +33,7 @@ void print_thread_event(thread_event_t* event, FILE* fp) {
 		}
 		case THREAD_ENTER_POLL:
 		{
-			fprintf(fp, "\t\t%" PRId64 " ENTER_POLL %" PRId64 " %" PRId64 "\n", 
+			len = sprintf(result, "%" PRId64 " ENTER_POLL %" PRId64 " %" PRId64, 
 				event->event.thread_enter_poll.timestamp, 
 				event->event.thread_enter_poll.thread_id, 
 				event->event.thread_enter_poll.resource_id
@@ -41,7 +42,7 @@ void print_thread_event(thread_event_t* event, FILE* fp) {
 		}
 		case THREAD_EXIT_POLL:
 		{
-			fprintf(fp, "\t\t%" PRId64 " EXIT_POLL %" PRId64 " SLT: %" PRId64 "\n", 
+			len = sprintf(result, "%" PRId64 " EXIT_POLL %" PRId64 " SLT: %" PRId64, 
 				event->event.thread_exit_poll.timestamp, 
 				event->event.thread_exit_poll.thread_id,
 				event->event.thread_exit_poll.sleep_time
@@ -50,7 +51,7 @@ void print_thread_event(thread_event_t* event, FILE* fp) {
 		}
 		case THREAD_SLEEP:
 		{
-			fprintf(fp, "\t\t%" PRId64 " SLEEP %" PRId64 "\n", 
+			len = sprintf(result, "%" PRId64 " SLEEP %" PRId64, 
 				event->event.thread_sleep.timestamp, 
 				event->event.thread_sleep.thread_id
 			);
@@ -58,7 +59,7 @@ void print_thread_event(thread_event_t* event, FILE* fp) {
 		}
 		case THREAD_WAKEUP:
 		{
-			fprintf(fp, "\t\t%" PRId64 " WAKEUP %" PRId64 " ==> %" PRId64 "\n", 
+			len = sprintf(result, "%" PRId64 " WAKEUP %" PRId64 " ==> %" PRId64, 
 				event->event.thread_wakeup.timestamp, 
 				event->event.thread_wakeup.from_thread_id, 
 				event->event.thread_wakeup.to_thread_id
@@ -67,18 +68,15 @@ void print_thread_event(thread_event_t* event, FILE* fp) {
 		}
 		case THREAD_EXIT:
 		{
-			fprintf(fp, "\t\t%" PRId64 " EXIT %" PRId64 "\n", 
+			len = sprintf(result, "%" PRId64 " EXIT %" PRId64, 
 				event->event.thread_exit.timestamp, 
 				event->event.thread_exit.thread_id);
 			break;
 		}
+		return len;
 	}
-	fflush(fp);
 }
 
-void print_thread_event_to_stdout(thread_event_t* event) {
-	print_thread_event(event, stdout);
-}
 
 // Event mangaer
 event_linked_list_t* init_event_linked_list() {
@@ -118,13 +116,4 @@ void remove_event_node_from_tail(event_linked_list_t* list) {
 
 int is_event_linkded_list_empty(event_linked_list_t* list) {
 	return list->head == list->tail;
-}
-
-inline void dump_event_linked_list(event_linked_list_t* list) {
-	event_node_t* node;
-	printf("dump\n");
-	for (node = list->head; node; node = node->next) {
-		printf("%p (%p, %p) \n", node, node->prev, node->next);
-	}
-	fflush(stdout);
 }

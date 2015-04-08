@@ -37,14 +37,6 @@ typedef struct poll_event_list {
 } poll_event_list_t;
 
 
-static int thread_event_list_len = 0;
-static int futex_event_list_len = 0;
-static int poll_event_list_len = 0;
-static thread_event_list_t thread_event_lists[MAX_THREAD_EVENTS];
-static futex_event_list_t futex_event_lists[MAX_THREAD_EVENTS];
-static poll_event_list_t poll_event_lists[MAX_THREAD_EVENTS];
-
-
 thread_event_list_t* find_event_list_by_thread(uint64_t thread_id);
 void insert_thread_event(thread_event_t* event);
 
@@ -58,8 +50,5 @@ void insert_poll_event(thread_event_t* event);
 // from timestamp `from` to `to`
 event_linked_list_t* extrace_get_futex_events_in_range(uint64_t thread_id, 
 		uint64_t from, uint64_t to);
-
-// For debugging
-void dump_all_event_lists();
 
 #endif

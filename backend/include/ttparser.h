@@ -6,6 +6,8 @@
 #include "ttevent.h"
 #include "ttthread_state.h"
 #include "ttdepsolver.h"
+#include "ttprocesses.h"
+#include "ttlogger.h"
 
 /**
  * The timestamp does not have a fixed length, which will get longer as the
@@ -28,12 +30,6 @@ inline static get_traced_function_offset(const char* buf) {
 
 };
 
-#define MODE_MASK_RAW		1
-#define MODE_MASK_EVENT		2
-#define MODE_MASK_SUBPROCESS	4
-#define MODE_MASK_EVENT_STAT	8
-static int run_mode;
-
 void init_parser(const uint64_t* pids, int n, int run_mode);
 void parse_event(const char* buf);
 static inline int in_hex_range(char c) {
@@ -42,58 +38,39 @@ static inline int in_hex_range(char c) {
 
 static event_linked_list_t* event_linked_list = NULL;
 
+
 /**
- * Ftrace does not work well. Even though set_ftrace_pid is set, it will output
- * a lot of events that is not related to the process we care.
+ * Logging
  */
-#define MAX_SUBPROCESS 1024
-uint64_t subprocess_amount;
-uint64_t subprocess_ids[MAX_SUBPROCESS];
+#define MODE_MASK_RAW         1
+#define MODE_MASK_EVENT       2
+#define MODE_MASK_SUBPROCESS  4
+#define MODE_MASK_EVENT_STAT  8
+static int run_mode;
 
-#define log_event(msg, args...) (run_mode & MODE_MASK_EVENT) && print_event(msg, ## args)
+#define parser_print_raw(line_buf) \
+	do { \
+		if (run_mode & MODE_MASK_RAW) \
+			print_raw_line(stdout, line_buf); \
+	} while(0)
 
-static int is_subprocess(uint64_t pid) {
-	int i;
-	for (i = 0; i < subprocess_amount; i++) 
-		if (pid == subprocess_ids[i])
-			return 1;
-	return 0;
-}
-static inline void push_subprocess(uint64_t pid) {
-	subprocess_ids[subprocess_amount++] = pid;
-} 
+#define parser_print_frontend_event(msg, args...) \
+	do { \
+		if (run_mode & MODE_MASK_EVENT) \
+			print_frontend_event(msg, ## args); \
+	} while(0)
 
-static inline void print_subprocesses() {
-	int i;
-	if (run_mode & MODE_MASK_SUBPROCESS) {
-		printf("========================\n");
-		printf("Subprocesses\n");
-		printf("------------------------\n");
-		for (i = 0; i < subprocess_amount; i++) {
-			printf("%" PRId64 "\t\t", subprocess_ids[i]);
-			if (i % 5 == 4) printf("\n");
-		}
-		if (i % 5) printf("\n");
-		printf("========================\n");
-		fflush(stdout);
-	}
-}
+#define parser_print_subprocesses() \
+	do { \
+		if (run_mode & MODE_MASK_SUBPROCESS) \
+			print_all_subprocesses(stdout); \
+	} while(0)
 
-static inline void print_line(const char* buf) {
-	if (run_mode & MODE_MASK_RAW) {
-		printf("%s", buf);
-		fflush(stdout);
-	}
-
-}
-static inline void print_all_event_lists() {
-	if (run_mode & MODE_MASK_EVENT_STAT) {
-		dump_all_event_lists();
-	}
-
-}
-
-void dump_all(int force);
+#define parser_print_event_list() \
+	do { \
+		if (run_mode & MODE_MASK_EVENT_STAT) \
+			print_all_event_lists(stdout); \
+	} while(0)
 
 
 #endif

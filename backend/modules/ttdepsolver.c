@@ -1,5 +1,13 @@
 #include "ttdepsolver.h"
 
+
+int thread_event_list_len = 0;
+int futex_event_list_len = 0;
+int poll_event_list_len = 0;
+thread_event_list_t thread_event_lists[MAX_THREAD_EVENTS];
+futex_event_list_t futex_event_lists[MAX_THREAD_EVENTS];
+poll_event_list_t poll_event_lists[MAX_THREAD_EVENTS];
+
 thread_event_list_t* find_event_list_by_thread(uint64_t thread_id) {
 	int i;
 	for (i = 0; i < thread_event_list_len; i++) {
@@ -39,7 +47,7 @@ poll_event_list_t* find_event_list_by_pollfd(uint64_t pollfd) {
 
 
 void insert_thread_event(thread_event_t* event) {
-	return;
+	//return;
 	uint64_t thread_id;
 	thread_event_list_t* list;
 	// find the thread_id
@@ -100,7 +108,6 @@ void insert_thread_event(thread_event_t* event) {
 			return;
 		}
 	}
-#endif
 	// Skip short time
 	if (!is_event_linkded_list_empty(list->list) &&
 		event->type == THREAD_EXIT_POLL &&
@@ -125,6 +132,7 @@ void insert_thread_event(thread_event_t* event) {
 		list->amount--;
 		return;
 	}
+#endif
 
 	//if (list->amount < MAX_THREAD_EVENTS) {
 		insert_event_node_to_tail(list->list, event);
@@ -136,7 +144,7 @@ void insert_thread_event(thread_event_t* event) {
 }
 
 void insert_futex_event(thread_event_t* event) {
-	return;
+	//return;
 	uint64_t futex;
 	futex_event_list_t* list;
 	// find the thread_id
@@ -161,7 +169,7 @@ void insert_futex_event(thread_event_t* event) {
 }
 
 void insert_poll_event (thread_event_t* event) {
-	return;
+	//return;
 	uint64_t pollfd;
 	poll_event_list_t* list;
 	// find the thread_id
@@ -196,41 +204,4 @@ event_linked_list_t* extract_get_futex_events_in_range(uint64_t thread_id, uint6
 		}
 	}
 	return rlist;
-}
-
-void dump_all_event_lists() {
-	int i;
-	event_node_t* node;
-	printf("===============================\n");
-	printf("Thread Events (%d):\n", thread_event_list_len);
-	printf("-------------------------------\n");
-	for (i = 0; i < thread_event_list_len; i++) {
-		thread_event_list_t* list = &(thread_event_lists[i]);
-		printf("\tThread %" PRId64 " (%d %s)\n", list->thread_id, list->amount, find_thread(list->thread_id)->thread_name);
-		for (node = list->list->head->next; node; node = node->next) {
-			print_thread_event_to_stdout(node->event);
-		}
-	}
-	printf("-------------------------------\n");
-	printf("Futex Events (%d):\n", futex_event_list_len);
-	printf("-------------------------------\n");
-	for (i = 0; i < futex_event_list_len; i++) {
-		futex_event_list_t* list = &(futex_event_lists[i]);
-		printf("\tFutex %" PRId64 " (%d)\n", list->futex, list->amount);
-		for (node = list->list->head->next; node; node = node->next) {
-			print_thread_event_to_stdout(node->event);
-		}
-	}
-	printf("-------------------------------\n");
-	printf("Poll Events (%d):\n", poll_event_list_len);
-	printf("-------------------------------\n");
-	for (i = 0; i < poll_event_list_len; i++) {
-		poll_event_list_t* list = &(poll_event_lists[i]);
-		printf("\tPoll fd %" PRId64 " (%d)\n", list->pollfd, list->amount);
-		for (node = list->list->head->next; node; node = node->next) {
-			print_thread_event_to_stdout(node->event);
-		}
-	}
-	printf("=============================\n");
-	fflush(stdout);
 }

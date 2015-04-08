@@ -127,15 +127,3 @@ inline const char* get_running_state(thread_running_state_t state) {
 			return "Exit";
 	}
 }
-void print_thread_states() {
-	int i;
-	printf("%d threads\n", thread_amount);
-	printf("%" PRId64 " is current\n", current == NULL ? 0 : current->thread_id);
-	for (i = 0; i < thread_amount; ++i) {
-		thread_state_t* s = &(thread_states[i]);
-		printf("%" PRId64 " %s ", s->thread_id, get_running_state(s->state));
-		if (s->futex != NOFUTEX)
-			printf("%s-%" PRId64, s->waiting_futex ? "waitingfor" : "holding", s->futex);
-		printf("\n");
-	}
-}
