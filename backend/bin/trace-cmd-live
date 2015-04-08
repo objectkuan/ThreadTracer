@@ -39,6 +39,9 @@ echo nop > $TRACEDIR/current_tracer
 echo 0 > $TRACEDIR/tracing_on
 echo 0 > $TRACEDIR/trace
 
+# set the tracing clock
+echo perf > $TRACEDIR/trace_clock
+
 touch $TRACED_PIDS_FILE
 cat $TRACED_PIDS_FILE | xargs -i echo {} >> $TRACEDIR/set_ftrace_pid
 # PID=$1
