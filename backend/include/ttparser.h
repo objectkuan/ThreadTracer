@@ -30,7 +30,7 @@ inline static get_traced_function_offset(const char* buf) {
 
 };
 
-void init_parser(const uint64_t* pids, int n, int run_mode);
+void init_parser(const uint64_t* pids, int n, int run_mode, const char* outdir, uint64_t period);
 void parse_event(const char* buf);
 static inline int in_hex_range(char c) {
 	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
@@ -54,10 +54,10 @@ static int run_mode;
 			print_raw_line(stdout, line_buf); \
 	} while(0)
 
-#define parser_print_frontend_event(msg, args...) \
+#define parser_print_frontend_event(timestamp, fe_event) \
 	do { \
 		if (run_mode & MODE_MASK_EVENT) \
-			print_frontend_event(msg, ## args); \
+			print_frontend_event(timestamp, fe_event); \
 	} while(0)
 
 #define parser_print_subprocesses() \

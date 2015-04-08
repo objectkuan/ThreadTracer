@@ -152,16 +152,24 @@ uint64_t get_futex_retval_sys_futex(const char* buf) {
 	return result;
 }
 
-extern subprocess_amount;
-void init_parser(const uint64_t* pids, int n, int mode) {
+extern int subprocess_amount;
+extern const char* frontend_output_dir;
+extern uint64_t used_period;
+void init_parser(const uint64_t* pids, int n, int mode, 
+	const char* outdir, uint64_t period) {
 	int i;
+
 	if (!event_linked_list)
 		event_linked_list = init_event_linked_list();
+
 	subprocess_amount = 0;
 	run_mode = mode;
 	for (i = 0; i < n; i++) {
 		push_subprocess(pids[i]);
 	}
+
+	frontend_output_dir = outdir;
+	used_period = period;
 }
 
 
@@ -171,6 +179,7 @@ void parse_event(const char* buf) {
 		uint64_t parent_thread_id = get_subject_thread_id(buf);
 		uint64_t child_thread_id = get_sched_wakeup_new_child_thread_id(buf);
 		uint64_t timestamp = get_timestamp(buf);
+		char fe_event[1024];
 		
 		// Filtering
 		if (!is_subprocess(parent_thread_id))
@@ -190,7 +199,8 @@ void parse_event(const char* buf) {
 		event->event.thread_create.timestamp = timestamp;
 		insert_thread_event(event);
 
-		parser_print_frontend_event("%" PRId64 " CREATE_WAKEUP %" PRId64 " %" PRId64 "\n", timestamp, parent_thread_id, child_thread_id);
+		sprintf(fe_event, "%" PRId64 " CREATE_WAKEUP %" PRId64 " %" PRId64 "\n", timestamp, parent_thread_id, child_thread_id);
+		parser_print_frontend_event(timestamp, fe_event);
 		parser_print_raw(buf);
 	} else if (compare_traced_function(buf, "sched_wakeup")) {
 		// wake up thread
@@ -198,6 +208,7 @@ void parse_event(const char* buf) {
 		uint64_t to_thread_id = get_thread_wakeup_wakenup_thread_id(buf);
 		uint64_t timestamp = get_timestamp(buf);
 		char thread_name[256];
+		char fe_event[1024];
 
 		// Filtering
 		if (!is_subprocess(to_thread_id))
@@ -218,13 +229,15 @@ void parse_event(const char* buf) {
 		// Name the thread
 		get_subject_thread_name(buf, thread_name);
 		if (!name_invalid(thread_name)) {
-			if (name_changed(from_thread_id, thread_name))
-				parser_print_frontend_event("%" PRId64 " NAME_THREAD %" PRId64 " %s\n", timestamp, from_thread_id, thread_name);
-
+			if (name_changed(from_thread_id, thread_name)) {
+				sprintf(fe_event, "%" PRId64 " NAME_THREAD %" PRId64 " %s\n", timestamp, from_thread_id, thread_name);
+				parser_print_frontend_event(timestamp, fe_event);
+			}
 			name_thread(from_thread_id, thread_name);
 		}
 
-		parser_print_frontend_event("%" PRId64 " WAKEUP %" PRId64 " %" PRId64 "\n", timestamp, from_thread_id, to_thread_id);
+		sprintf(fe_event, "%" PRId64 " WAKEUP %" PRId64 " %" PRId64 "\n", timestamp, from_thread_id, to_thread_id);
+		parser_print_frontend_event(timestamp, fe_event);
 		parser_print_raw(buf);
 	} else if (compare_traced_function(buf, "sys_nanosleep")) {
 		int traced_function_offset = get_traced_function_offset(buf);
@@ -233,6 +246,7 @@ void parse_event(const char* buf) {
 			// Call sys_nanosleep
 			uint64_t thread_id = get_subject_thread_id(buf);
 			uint64_t timestamp = get_timestamp(buf);
+			char fe_event[1024];
 
 			// Filtering
 			if (!is_subprocess(thread_id))
@@ -249,7 +263,8 @@ void parse_event(const char* buf) {
 			event->event.thread_sleep.timestamp = timestamp;
 			insert_thread_event(event);
 
-			parser_print_frontend_event("%" PRId64 " SLEEP %" PRId64 "\n", timestamp, thread_id);
+			sprintf(fe_event, "%" PRId64 " SLEEP %" PRId64 "\n", timestamp, thread_id);
+			parser_print_frontend_event(timestamp, fe_event);
 			parser_print_raw(buf);
 		} else {
 			// Return from sys_nanosleep
@@ -265,6 +280,7 @@ void parse_event(const char* buf) {
 			uint64_t thread_id = get_subject_thread_id(buf);
 			uint64_t resource = 0;
 			int opcode = 0;
+			char fe_event[1024];
 			get_futex_args_sys_futex(buf, &resource, &opcode);
 			assert(resource != 0);
 
@@ -285,12 +301,14 @@ void parse_event(const char* buf) {
 			insert_thread_event(event);
 			insert_futex_event(event);
 
-			parser_print_frontend_event("%" PRId64 " ENTER_FUTEX %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
+			sprintf(fe_event, "%" PRId64 " ENTER_FUTEX %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
+			parser_print_frontend_event(timestamp, fe_event);
 		} else {
 			// Return from sys_futex
 			uint64_t thread_id = get_subject_thread_id(buf);
 			int64_t retval = get_futex_retval_sys_futex(buf);
 			uint64_t sleep_time = 0;
+			char fe_event[1024];
 			
 			// Filtering
 			if (!is_subprocess(thread_id))
@@ -314,16 +332,20 @@ void parse_event(const char* buf) {
 			insert_thread_event(event);
 			insert_futex_event(event);
 
-			if (retval == -110)
-				parser_print_frontend_event("%" PRId64 " EXIT_FUTEX_TIMEOUT %" PRId64 "\n", timestamp, thread_id);
-			else
-				parser_print_frontend_event("%" PRId64 " EXIT_FUTEX %" PRId64 "\n", timestamp, thread_id);
+			if (retval == -110) {
+				sprintf(fe_event, "%" PRId64 " EXIT_FUTEX_TIMEOUT %" PRId64 "\n", timestamp, thread_id);
+				parser_print_frontend_event(timestamp, fe_event);
+			} else {
+				sprintf(fe_event, "%" PRId64 " EXIT_FUTEX %" PRId64 "\n", timestamp, thread_id);
+				parser_print_frontend_event(timestamp, fe_event);
+			}
 		}
 		parser_print_raw(buf);
 	} else if (compare_traced_function(buf, "sched_process_exit")) {
 		uint64_t timestamp = get_timestamp(buf);
 		uint64_t thread_id = get_subject_thread_id(buf);
 		char thread_name[256];
+		char fe_event[1024];
 		
 		// Filtering
 		if (!is_subprocess(thread_id))
@@ -345,7 +367,8 @@ void parse_event(const char* buf) {
 		if (!name_invalid(thread_name))
 			name_thread(thread_id, thread_name);
 
-		parser_print_frontend_event("%" PRId64 " EXIT %" PRId64 "\n", timestamp, thread_id);
+		sprintf(fe_event, "%" PRId64 " EXIT %" PRId64 "\n", timestamp, thread_id);
+		parser_print_frontend_event(timestamp, fe_event);
 		parser_print_raw(buf);
 	} else if (compare_traced_function(buf, "sys_poll")) { 
 		int traced_function_offset = get_traced_function_offset(buf);
@@ -355,6 +378,7 @@ void parse_event(const char* buf) {
 			// Call sys_poll
 			uint64_t thread_id = get_subject_thread_id(buf);
 			uint64_t resource = 0;
+			char fe_event[1024];
 
 			get_poll_args_sys_poll(buf, &resource);
 			assert(resource != 0);
@@ -376,12 +400,14 @@ void parse_event(const char* buf) {
 			insert_thread_event(event);
 			insert_poll_event(event);
 
-			parser_print_frontend_event("%" PRId64 " ENTER_POLL %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
+			sprintf(fe_event, "%" PRId64 " ENTER_POLL %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
+			parser_print_frontend_event(timestamp, fe_event);
 		} else {
 			// Return from sys_poll
 			uint64_t thread_id = get_subject_thread_id(buf);
 			uint64_t pollfd;
 			uint64_t sleep_time = 0;
+			char fe_event[1024];
 
 			// Filtering
 			if (!is_subprocess(thread_id))
@@ -401,7 +427,8 @@ void parse_event(const char* buf) {
 			insert_thread_event(event);
 			insert_poll_event(event);
 			
-			parser_print_frontend_event("%" PRId64 " EXIT_POLL %" PRId64 "\n", timestamp, thread_id);
+			sprintf(fe_event, "%" PRId64 " EXIT_POLL %" PRId64 "\n", timestamp, thread_id);
+			parser_print_frontend_event(timestamp, fe_event);
 		}
 		parser_print_raw(buf);
 	} else if (compare_traced_function(buf, "sched_switch")) {
@@ -410,11 +437,13 @@ void parse_event(const char* buf) {
 		uint64_t timestamp = get_timestamp(buf);
 		uint64_t prev_thread_id = get_prev_thread_id_sched_switch(buf);	
 		uint64_t next_thread_id = get_next_thread_id_sched_switch(buf);
+		char fe_event[1024];
 		
 		// Do it
 		switch_thread(prev_thread_id, next_thread_id);		
 		
-		parser_print_frontend_event("%" PRId64 " SWITCH %" PRId64 " %" PRId64 "\n", timestamp, prev_thread_id, next_thread_id);
+		sprintf(fe_event, "%" PRId64 " SWITCH %" PRId64 " %" PRId64 "\n", timestamp, prev_thread_id, next_thread_id);
+		parser_print_frontend_event(timestamp, fe_event);
 		parser_print_raw(buf);
 	} else {
 		goto not_match;

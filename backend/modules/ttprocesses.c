@@ -1,6 +1,6 @@
 #include "ttprocesses.h"
 
-uint64_t subprocess_amount;
+int subprocess_amount;
 uint64_t subprocess_ids[MAX_SUBPROCESS];
 
 int is_subprocess(uint64_t pid) {

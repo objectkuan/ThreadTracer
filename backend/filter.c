@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -56,7 +57,9 @@ int main(int argc, char** args) {
 	int mode = atoi(args[2]);
 	char* infile = args[3];
 	char* outdir = args[4];
-	int period = atoi(args[5]);
+	long period = atol(args[5]);
+	uint64_t used_period = period;
+	used_period *= 1000;
 
 	printf("mode: %d\n", mode);
 	printf("pid in files: %s\n", pid_file);
@@ -88,10 +91,16 @@ int main(int argc, char** args) {
 
 	// Initialize parser
 	if (mkdir(outdir, S_IRUSR | S_IWUSR | S_IXUSR) == -1) {
-		fprintf(stderr, "Fail to create output directory %s\n", outdir);
-		exit(1);
+		if (errno == EEXIST) {
+			fprintf(stdout, "Directory %s already exists and there's no need to create\n", outdir);
+		} else {
+			fprintf(stderr, "Fail to create output directory %s\n", outdir);
+			exit(1);
+		}
+	} else {
+		fprintf(stdout, "Directory %s doesn't exist and is created successfully\n", outdir);
 	}
-	init_parser(pids, pid_amount, mode);
+	init_parser(pids, pid_amount, mode, outdir, used_period);
 
 	// Say go, let's go
 	handle = (mode == 0 ? &only_print : & parse_event);
