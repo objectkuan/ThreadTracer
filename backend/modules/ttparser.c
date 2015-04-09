@@ -301,6 +301,16 @@ void parse_event(const char* buf) {
 			insert_thread_event(event);
 			insert_futex_event(event);
 
+			// Name the thread
+			get_subject_thread_name(buf, thread_name);
+			if (!name_invalid(thread_name)) {
+				if (name_changed(thread_id, thread_name)) {
+					sprintf(fe_event, "%" PRId64 " NAME_THREAD %" PRId64 " %s\n", timestamp, from_thread_id, thread_name);
+					parser_print_frontend_event(timestamp, fe_event);
+				}
+				name_thread(thread_id, thread_name);
+			}
+			
 			sprintf(fe_event, "%" PRId64 " ENTER_FUTEX %" PRId64 " %" PRId64 "\n", timestamp, thread_id, resource);
 			parser_print_frontend_event(timestamp, fe_event);
 		} else {
