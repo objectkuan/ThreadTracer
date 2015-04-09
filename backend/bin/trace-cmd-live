@@ -20,8 +20,8 @@ echo "" > $TRACEDIR/set_event
 # trace_event syscalls:sys_enter_clock_nanosleep
 #    wakeup
 trace_event sched:sched_wakeup_new
-# trace_event sched:sched_process_fork
 trace_event sched:sched_wakeup
+# trace_event sched:sched_process_fork
 #    exit
 trace_event sched:sched_process_exit
 #    futex
@@ -53,9 +53,9 @@ echo 0 > $TRACEDIR/trace
 filter_option=0
 final_cmd="./filter $TRACED_PIDS_FILE $filter_option $TRACEDIR/trace_pipe > $CURDIR/ball.3"
 echo $final_cmd
-bash -c "cd $CURDIR && $final_cmd"
+bash -c "cd $CURDIR && $final_cmd" &
 
 # perf's place
-# perf record -e ref-cycles --call-graph dwarf -F 97 -p $PID & 
-# echo $! > perf.pid
+perf record -e ref-cycles --call-graph dwarf -F 97 -p $PID -o $OUTDIR/perf.data &
+echo $! > $OUTDIR/perf.pid
 

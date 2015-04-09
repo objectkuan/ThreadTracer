@@ -7,4 +7,6 @@ echo "Finished"
 echo 0 > $TRACEDIR/tracing_on
 
 # perf's place
-# kill `cat perf.pid`
+perf_pid_file=$OUTDIR/perf.pid
+perf_pid=`cat $perf_pid_file`
+kill $perf_pid
