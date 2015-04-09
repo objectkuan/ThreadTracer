@@ -106,7 +106,7 @@ int main(int argc, char** args) {
 	handle = (mode == 0 ? &only_print : & parse_event);
 	while (1) {
 		if (fgets(buf, MAX_LINE, fd_trace_pipe)) {
-				handle(buf);
+			handle(buf);
 		} else {
 			print_all_subprocesses(stdout);
 			print_all_event_lists(stdout);
