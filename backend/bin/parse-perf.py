@@ -5,11 +5,18 @@ import re
 import operator
 
 fin = sys.argv[1]
+objs = sys.argv[2]
+
+# Parsing objects
+valid_objs = ["func", "trace", "corr"]
+objs = objs.split(',')
+objs = [ val for val in objs if val in valid_objs ]
 
 # Patterns
 pat_event = r"(.*)\s(\d+)\s(\d+)\.(\d+):\s*(\d+)\s[^:]+:"
 pat_function = r"\s*([a-f0-9]*)\s([^\s]*)\s\((.*)\)"
 
+# Managing time
 total_times = 0
 
 start_time = sys.maxint
@@ -45,8 +52,8 @@ for line in open(fin):
 
 		times_5s = time / interval
 		if times_5s > last_times_5s:
-			to_time = times_5s * interval
-			from_time = to_time - interval
+			from_time = times_5s * interval
+			to_time = from_time + interval
 			interval_stat["func"].append( { "from": from_time, "to": to_time, "list": {} } )
 			interval_stat["trace"].append({ "from": from_time, "to": to_time, "list": {} } )
 			interval_stat["corr"].append( { "from": from_time, "to": to_time, "list": {} } )
@@ -126,7 +133,10 @@ def print_func_stat(sorted_func_stat):
 		function_times = item[1]
 		percentage = function_times * 100 / total_times
 		counter = counter + 1
-		print "({:3}) {:16} {:8.2f}% {}".format(counter, function_times, percentage, function)
+		print "{} {:16} {:8.2f}%".format(counter, function_times, percentage)
+		print "\t", function
+		if counter >= 10:
+			break
 
 def print_trace_stat(sorted_trace_stat):
 	counter = 0
@@ -136,9 +146,12 @@ def print_trace_stat(sorted_trace_stat):
 		percentage = trace_times * 100 / total_times
 		functions = trace.split("::")
 		counter = counter + 1
-		print "({:3}) {:16} {:8.2f}% ".format(counter, trace_times, percentage)
-		for func in functions:
+		print "{} {:16} {:8.2f}% ".format(counter, trace_times, percentage)
+		taken_out_functions = reversed(functions[:-1])
+		for func in taken_out_functions:
 			print "\t", func
+		if counter >= 10:
+			break
 
 def print_corr_stat(sorted_corr_stat):
 	counter = 0
@@ -148,24 +161,25 @@ def print_corr_stat(sorted_corr_stat):
 		percentage = call_times * 100 / total_times
 		functions = calling.split("::")
 		counter = counter + 1
-		print "({:3}) {:16} {:8.2f}% {} ".format(counter, call_times, percentage, functions[0] + " <- " + functions[1])
+		print "{} {:16} {:8.2f}%".format(counter, call_times, percentage)
+		print "\t", functions[0] + " <- " + functions[1]
+		if counter >= 10:
+			break
 
 print_stat = { "func": print_func_stat, "trace": print_trace_stat, "corr": print_corr_stat }
 for key, list_over_time in interval_stat.iteritems():
-	print "+==================="
-	print key
-	print "===================="
+	if not key in objs:
+		continue
+	print "+=========", key, "=========="
 	for item_over_time in enumerate(list_over_time):
 		index = item_over_time[0]
 		item = item_over_time[1]
 		stat = item["list"]
 		item["list"] = reversed(sorted(stat.items(),  key=operator.itemgetter(1)))
-		print "+-------------------"
 		sus = 1000000
-		print "From {}.{} to {}.{}".format(item["from"] / sus, item["from"] % sus, item["to"] / sus, item["to"] % sus)
-		print "--------------------"
+		print "+--- {}.{} --- {}.{} ---".format(item["from"] / sus, item["from"] % sus, item["to"] / sus, item["to"] % sus)
 		print_stat[key](item["list"])
-	print "===================="
+		print "+--- end ---"
 	print "\n\n\n\n\n\n"
 
 
