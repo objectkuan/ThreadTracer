@@ -134,4 +134,53 @@ function clearCanvas() {
     var c = document.getElementById("myCanvas");
     var ctx = c.getContext("2d");
     ctx.clearRect(0, 0, c.width, c.height);
+    // console.log("Clear canvas", c.width, c.height);
+}
+
+function backupCanvas() {
+    var c = document.getElementById("myCanvas");
+    var ctx = c.getContext("2d");
+
+    var backUpCanvas = document.getElementById('backupCanvas');
+    var backUpContex = backUpCanvas.getContext('2d');
+    backUpContex.clearRect(0, 0, backUpCanvas.width, backUpCanvas.height);
+
+    backUpContex.drawImage(c, 0, 0, c.width, c.height);
+    // console.log("Backup Canvas", c.width, c.height, backUpCanvas.width, backUpCanvas.height);
+}
+
+function restoreCanvas() {
+    var c = document.getElementById("myCanvas");
+    var ctx = c.getContext("2d");
+    var backUpCanvas = document.getElementById('backupCanvas');
+    clearCanvas();
+    // console.log("Restore canvas", c.width, c.height);
+    ctx.drawImage(backUpCanvas, 0, 0, c.width, c.height);
+    // console.log("Restore Canvas", c.width, c.height, backUpCanvas.width, backUpCanvas.height);
+}
+
+function drawRectangle(left, top, width, height) {
+    var c = document.getElementById("myCanvas");
+    var ctx = c.getContext("2d");
+
+    ctx.save();
+
+    ctx.globalAlpha = 0.2;
+    ctx.fillStyle = '#112';
+    ctx.fillRect(left, top, width, height);
+    ctx.globalAlpha = 1;
+
+    ctx.restore();
+}
+
+function drawTallRectangle(left, right) {
+    var c = document.getElementById("myCanvas");
+    drawRectangle(left, 0, right - left, c.height);
+}
+
+function addClickListener(func) {
+    var c = document.getElementById("myCanvas");
+    c.addEventListener("click", function(evt) {
+        func(evt.layerX, evt.layerY);
+    }, false);
 }

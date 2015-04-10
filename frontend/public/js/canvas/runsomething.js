@@ -31,6 +31,7 @@ function runNautilus() {
 
 	runTo(29197, 100000000);
 
+	backupCanvas();
 }
 
 function runChrome() {
@@ -51,5 +52,7 @@ function runChrome() {
 	runTo(14335, 100000000);
 
 	runTo(14338, 100000000);
+
+	backupCanvas();
 
 }

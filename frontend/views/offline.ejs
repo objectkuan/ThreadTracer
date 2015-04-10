@@ -31,6 +31,17 @@
 
         <!-- Content Row -->
         <div class="row">
+                <!-- File -->
+                <!-- Thread States -->
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Thread states</h3>
+                    </div>
+                    <div class="panel-body" >
+                        Parse a traced file: <input type="file" id="traced-file" name="traced-file" />
+                        Parse a perf file: <input type="file" id="perf-file" name="perf-file" />
+                    </div>
+                </div>
 
                 <!-- Thread States -->
                 <div class="panel panel-default">
@@ -38,16 +49,37 @@
                         <h3 class="panel-title">Thread states</h3>
                     </div>
                     <div class="panel-body" >
-                        <div style="width: 100%; height: 400px; margin: 1px; padding 1px; border:1px solid #d3d3d3; overflow: auto;">
-                            <canvas id="myCanvas" width="5000px" height="2400px">
+                        <div style="width: 100%; height: 600px; margin: 1px; padding 1px; border:1px solid #d3d3d3; overflow: auto;">
+                            <canvas id="myCanvas" width="5000" height="2400">
+                                Your browser does not support the HTML5 canvas tag.
+                            </canvas>
+                            <canvas id="backupCanvas" width="5000" height="2400" style="display: none;">
                                 Your browser does not support the HTML5 canvas tag.
                             </canvas>
                             <script>
                                 runChrome();
                             </script>
                         </div>
-                        <hr>
-                        <input type="file" id="traced-file" name="traced-file" />
+                    </div>
+                </div>
+
+                <!-- Dynamic Statistics -->
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Dynamic Statistics</h3>
+                    </div>
+                    <div class="panel-body" >
+                        <div class="col-lg-12">
+                            <div class="col-md-4">
+                                <textarea id="text-func" class="form-control" style="height: 400px; resize: none;"></textarea>
+                            </div>
+                            <div class="col-md-4">
+                                <textarea id="text-trace" class="form-control" style="height: 400px; resize: none;"></textarea>
+                            </div>
+                            <div class="col-md-4">
+                                <textarea id="text-corr" class="form-control" style="height: 400px; resize: none;"></textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

@@ -3,6 +3,7 @@ var pidToIndex = {};
 var filteredThreads = [];
 var filteredPidToIndex = {};
 var initTimeus = 0;
+var usPerPixel = 50000;
 
 var TSTATE = (function() {
      var private = {
@@ -15,9 +16,10 @@ var TSTATE = (function() {
         v: function(name) { return private[name]; }
     };
 })();
+var LEFTMOST = 130;
 
 function indexToY(index) { return index * 50 + 50; }
-function timeToX(timeus) { return (timeus - initTimeus) / 50000 + 130; }
+function timeToX(timeus) { return (timeus - initTimeus) / usPerPixel + LEFTMOST; }
 
 
 function resetThreads() {
@@ -34,6 +36,7 @@ function setInitTime(time) {
 	for (var i = 0; i < threads.length; i++) {
 		threads[i].end = initTimeus;
 	}
+	console.log("Set init time ", initTimeus);
 }
 
 function hasThread(pid) {
@@ -140,4 +143,68 @@ function getThreadLastEvent(pid) {
 	var thread = threads[pidToIndex[pid]];
 	if(thread == undefined) return null;
 	return thread.lastEvent;
+}
+
+
+// Perf data
+var perfStat = {};
+
+function initPerfStat(statType) {
+	perfStat[statType] = [];
+}
+
+function pushPerfStat(statType, statItem) {
+	perfStat[statType].push(statItem);
+}
+
+function tryDump() {
+	console.log(perfStat);
+}
+
+// Interaction
+function initInteraction() {
+	addClickListener(function(x, y) {
+		console.log(x, y);
+		
+		var _x = x - LEFTMOST;
+		if (_x < 0) return;
+		var pixelPerPeriod = 5000000 / usPerPixel;
+		var period = Math.floor(_x / pixelPerPeriod);
+		console.log("Period: " + period);
+		var maskLeft = period * pixelPerPeriod + LEFTMOST;
+		var maskRight = maskLeft + pixelPerPeriod;
+
+		// Draw shadow
+		restoreCanvas();
+		drawTallRectangle(maskLeft, maskRight);
+
+		// Draw Text
+		var statTypes = ["func", "corr", "trace"];
+		for (var index in statTypes) {
+			var statType = statTypes[index];
+			if (statType in perfStat) {
+				console.log("Playing with " + statType);
+				listOverTime = perfStat[statType];
+				for (var i in listOverTime) {
+					var itemOverTime = listOverTime[i];
+					var fromTimeX = timeToX(itemOverTime.from * 1000000);
+					var toTimeX = timeToX(itemOverTime.to * 1000000);
+					console.log(itemOverTime.from, fromTimeX, x, toTimeX);
+					if (x > fromTimeX && x < toTimeX) {
+						var itemsInPeriod = itemOverTime.itemsInPeriod;
+						var content = "";
+						for (var j in itemsInPeriod) {
+							var itemInPeriod = itemsInPeriod[j];
+							content = content + itemInPeriod.head + "\n";
+							for (var k in itemInPeriod.contents) {
+								content = content + itemInPeriod.contents[k] + "\n";
+							}
+						}
+						$("#text-" + statType).val(content);
+						break;
+					}
+				}
+			}
+		}
+	});
 }
