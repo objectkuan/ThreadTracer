@@ -281,6 +281,7 @@ void parse_event(const char* buf) {
 			uint64_t resource = 0;
 			int opcode = 0;
 			char fe_event[1024];
+			char thread_name[256];
 			get_futex_args_sys_futex(buf, &resource, &opcode);
 			assert(resource != 0);
 
@@ -305,7 +306,7 @@ void parse_event(const char* buf) {
 			get_subject_thread_name(buf, thread_name);
 			if (!name_invalid(thread_name)) {
 				if (name_changed(thread_id, thread_name)) {
-					sprintf(fe_event, "%" PRId64 " NAME_THREAD %" PRId64 " %s\n", timestamp, from_thread_id, thread_name);
+					sprintf(fe_event, "%" PRId64 " NAME_THREAD %" PRId64 " %s\n", timestamp, thread_id, thread_name);
 					parser_print_frontend_event(timestamp, fe_event);
 				}
 				name_thread(thread_id, thread_name);
