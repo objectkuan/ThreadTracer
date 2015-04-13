@@ -40,7 +40,7 @@ typedef void (*handler_t)(const char* buf);
  * outdir:
  *    A directory to hold the output files
  * period:
- *    A period of time in milliseconds that each output file cover
+ *    A period of time in milliseconds that each output file covers
  */
 int main(int argc, char** args) {
 	char buf[MAX_LINE];
@@ -62,24 +62,25 @@ int main(int argc, char** args) {
 	used_period *= 1000;
 
 	if (argc < 6) {
-		printf("\
-  pidfile:\
-     A file specifying which pids should be traced\
-  mode: \
-     The filtering mode to apply\
-        - Without PID filtered\
-          0 0x0000 only print\
-        - With PID filtered\
-          1 0x0001 only print\
-          2 0x0010 print event, for each trace log line\
-          4 0x0100 print subprocesses, for each trace log line\
-          8 0x1000 print grouped events, for each trace log line\
-  infile:\
-     A file caontaining a stream of events, like the trace_pipe\
-  outdir:\
-     A directory to hold the output files\
-  period:\
-     A period of time in milliseconds that each output file cover");
+		printf("\n\
+  pidfile:\n\
+     A file specifying which pids should be traced\n\
+  mode: \n\
+     The filtering mode to apply\n\
+        - Without PID filtered\n\
+          0 0x0000 only print\n\
+        - With PID filtered\n\
+          1 0x0001 only print\n\
+          2 0x0010 print event, for each trace log line\n\
+          4 0x0100 print subprocesses, for each trace log line\n\
+          8 0x1000 print grouped events, for each trace log line\n\
+  infile:\n\
+     A file caontaining a stream of events, like the trace_pipe\n\
+  outdir:\n\
+     A directory to hold the output files\n\
+  period:\n\
+     A period of time in milliseconds that each output file covers\n\n");
+		return 0;
 	}
 
 	pid_file = args[1];
