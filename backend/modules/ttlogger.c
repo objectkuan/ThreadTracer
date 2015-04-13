@@ -76,7 +76,7 @@ inline void print_all_event_lists(FILE* fp) {
 const char* frontend_output_dir = NULL;
 uint64_t used_period = 0;
 void print_frontend_event(uint64_t timestamp, const char* fe_event) {
-	int times_5s = timestamp / used_period;
+	long times_5s = timestamp / used_period;
 	if (times_5s > last_times_5s) {
 		char new_file_path[1024];
 

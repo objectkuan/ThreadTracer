@@ -48,18 +48,46 @@ int main(int argc, char** args) {
 	handler_t handle;
 
 	FILE *fd_pid_file;
-	const char* pid_file = args[1];
+	const char* pid_file;// = args[1];
 	char* pid_line = NULL;
 	size_t pid_line_len;
 	int pid_amount = 0;
 	uint64_t pids[100];
 
-	int mode = atoi(args[2]);
-	char* infile = args[3];
-	char* outdir = args[4];
-	long period = atol(args[5]);
+	int mode;// = atoi(args[2]);
+	char* infile;// = args[3];
+	char* outdir;// = args[4];
+	long period;// = atol(args[5]);
 	uint64_t used_period = period;
 	used_period *= 1000;
+
+	if (argc < 6) {
+		printf("\
+  pidfile:\
+     A file specifying which pids should be traced\
+  mode: \
+     The filtering mode to apply\
+        - Without PID filtered\
+          0 0x0000 only print\
+        - With PID filtered\
+          1 0x0001 only print\
+          2 0x0010 print event, for each trace log line\
+          4 0x0100 print subprocesses, for each trace log line\
+          8 0x1000 print grouped events, for each trace log line\
+  infile:\
+     A file caontaining a stream of events, like the trace_pipe\
+  outdir:\
+     A directory to hold the output files\
+  period:\
+     A period of time in milliseconds that each output file cover");
+	}
+
+	pid_file = args[1];
+	mode = atoi(args[2]);
+	infile = args[3];
+	outdir = args[4];
+	period = atol(args[5]);
+
 
 	printf("mode: %d\n", mode);
 	printf("pid in files: %s\n", pid_file);
