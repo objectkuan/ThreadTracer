@@ -63,8 +63,9 @@ else
 fi
 
 # filtering
+mkdir -p $OUTDIR
 filter_option=3
-final_cmd="./filter $TRACED_PIDS_FILE $filter_option $TRACEDIR/trace_pipe $OUTDIR 5000 > $CURDIR/ball.3"
+final_cmd="./filter $TRACED_PIDS_FILE $filter_option $TRACEDIR/trace_pipe $OUTDIR 5000 > $OUTDIR/ball.3"
 echo $final_cmd
 bash -c "cd $CURDIR && $final_cmd" &
 

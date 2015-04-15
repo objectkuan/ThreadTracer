@@ -10,3 +10,4 @@ echo 0 > $TRACEDIR/tracing_on
 perf_pid_file=$OUTDIR/perf.pid
 perf_pid=`cat $perf_pid_file`
 kill $perf_pid
+kill -10 `pgrep filter`

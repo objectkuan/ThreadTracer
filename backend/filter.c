@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <signal.h>
 #include "ttparser.h"
 #include "ttlogger.h"
 
@@ -12,8 +13,18 @@ void onexit (void) {
 	puts ("Exit");
 }
 
-#define MAX_LINE 2048
+int signal_finished_not_come;
+void signal_handler(int signo) {
+	if (signo == SIGUSR1) {
+		print_all_subprocesses(stdout);
+		print_all_event_lists(stdout);
+		fflush(stdout);
+		signal_finished_not_come = 0;
+	}
+	return;
+}
 
+#define MAX_LINE 2048
 
 void only_print(const char* buf) {
 	printf("%s", buf);
@@ -61,7 +72,8 @@ int main(int argc, char** args) {
 	uint64_t used_period = period;
 	used_period *= 1000;
 
-	if (argc < 6) {
+	// Argument hints
+	if (argc != 6) {
 		printf("\n\
   pidfile:\n\
      A file specifying which pids should be traced\n\
@@ -81,6 +93,12 @@ int main(int argc, char** args) {
   period:\n\
      A period of time in milliseconds that each output file covers\n\n");
 		return 0;
+	}
+
+	// Register a signal for 
+	if (signal(SIGUSR1, signal_handler) == SIG_ERR) {
+		perror("Cannot set handler for SIGUSR1");
+		exit(1);
 	}
 
 	pid_file = args[1];
@@ -133,14 +151,11 @@ int main(int argc, char** args) {
 
 	// Say go, let's go
 	handle = (mode == 0 ? &only_print : & parse_event);
-	while (1) {
+	signal_finished_not_come = 1;
+	while (signal_finished_not_come) {
 		if (fgets(buf, MAX_LINE, fd_trace_pipe)) {
 			handle(buf);
-		} else {
-			print_all_subprocesses(stdout);
-			print_all_event_lists(stdout);
-			break;
-		}
+		} else break;
 	}
 	return 0;
 }
