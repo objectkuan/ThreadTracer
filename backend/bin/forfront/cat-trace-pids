@@ -1,0 +1,11 @@
+#!/bin/bash
+CURDIR=$(cd `dirname $0`/..; pwd)
+source $CURDIR/trconfig.sh
+
+printf "["
+pids=`cat $TRACED_PIDS_FILE | tr '\n' ' ' | tr -s ' '`
+pids="$(echo -e "${pids}" | sed -e 's/^[[:space:]]*//')"
+pids="$(echo -e "${pids}" | sed -e 's/[[:space:]]*$//')"
+printf `echo $pids | tr ' ' ','`
+echo "]"
+

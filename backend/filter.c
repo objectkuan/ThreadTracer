@@ -69,8 +69,7 @@ int main(int argc, char** args) {
 	char* infile;// = args[3];
 	char* outdir;// = args[4];
 	long period;// = atol(args[5]);
-	uint64_t used_period = period;
-	used_period *= 1000;
+	uint64_t used_period; // = period * 1000;
 
 	// Argument hints
 	if (argc != 6) {
@@ -106,6 +105,8 @@ int main(int argc, char** args) {
 	infile = args[3];
 	outdir = args[4];
 	period = atol(args[5]);
+	used_period = period;
+	used_period *= 1000;
 
 
 	printf("mode: %d\n", mode);

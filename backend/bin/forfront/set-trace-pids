@@ -1,5 +1,5 @@
 #!/bin/bash
-CURDIR=$(cd `dirname $0`; pwd)
+CURDIR=$(cd `dirname $0`/..; pwd)
 source $CURDIR/trconfig.sh
 echo "" > $TRACED_PIDS_FILE
 

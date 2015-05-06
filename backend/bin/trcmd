@@ -1,5 +1,15 @@
 #!/bin/bash
+
 source ./trconfig.sh
+
+# exclude multipule tracing
+if [ -f $TTRACER_EXCLUSIVE_LOCK  ]; then
+	>&2 echo "ALREADYTRACING"
+	exit 0
+fi
+echo $OUTDIR > $TTRACER_EXCLUSIVE_LOCK
+
+# run command
 cmd="./trace-cmd $@"
 bash -c "$cmd"
 
@@ -10,4 +20,10 @@ echo 0 > $TRACEDIR/tracing_on
 perf_pid_file=$OUTDIR/perf.pid
 perf_pid=`cat $perf_pid_file`
 kill $perf_pid
+
+# kill filter
 kill -10 `pgrep filter`
+sleep 3
+
+# remove exclusive lock
+rm  $TTRACER_EXCLUSIVE_LOCK

@@ -1,0 +1,28 @@
+#!/bin/bash
+CURDIR=$(cd `dirname $0`/..; pwd)
+source $CURDIR/trconfig.sh
+
+# Check lock exists
+if [ ! -f $TTRACER_EXCLUSIVE_LOCK  ]; then
+	echo "-1"
+	exit
+fi
+
+# Get the from value
+from=$1
+if [ -z "$from"  ]; then
+	from=0
+fi
+from=$(($from + 1))
+
+current_dir=`cat $TTRACER_EXCLUSIVE_LOCK`
+files=`pushd $current_dir >/dev/null && ls *.log | sort -n | tail -n+$from && popd >/dev/null`
+files=($files)
+unset files[${#files[@]}-1]
+echo ${#files[@]} 
+
+for file in ${files[@]}
+do
+	#echo $file
+	cat $current_dir/$file
+done

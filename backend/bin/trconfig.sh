@@ -1,8 +1,11 @@
 
 DEBUGFS=`grep debugfs /proc/mounts | awk '{ print $2; }'`
 TRACEDIR=$DEBUGFS/tracing
-TRACED_PIDS_FILE=/tmp/.traced_pids
-OUTDIR=/tmp/trace_result/$(date +"%Y%m%d-%H:%M:%S")
+
+TTRACER_DIR=/tmp/trace_result
+TTRACER_EXCLUSIVE_LOCK=$TTRACER_DIR/.lock
+TRACED_PIDS_FILE=$TTRACER_DIR/traced_pids
+OUTDIR=$TTRACER_DIR/$(date +"%Y%m%d-%H:%M:%S")
 
 PINCPU=0
 while getopts :p:h option
