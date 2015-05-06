@@ -123,17 +123,32 @@ function drawArrow(fromX, fromY, toX, toY, color) {
     ctx.restore();          // this will, in fact, restore strokeStyle
 }
 
-function drawText(x, y, size, text) {
+function drawText(x, y, size, text, color) {
 	var c = document.getElementById("myCanvas");
 	var ctx = c.getContext("2d");
+    ctx.save();
+
 	ctx.font = size + "px Arial";
+    if (color)
+        ctx.fillStyle = color;
+    else
+        ctx.fillStyle = "black";
 	ctx.fillText(text, x, y);
+    
+    ctx.restore();
 }
 
 function clearCanvas() {
     var c = document.getElementById("myCanvas");
     var ctx = c.getContext("2d");
     ctx.clearRect(0, 0, c.width, c.height);
+
+    ctx.save();
+    
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, c.width, c.height);
+    
+    ctx.restore();
     // console.log("Clear canvas", c.width, c.height);
 }
 

@@ -8,7 +8,7 @@
 
 
     <link href="css/checklist.css" rel="stylesheet"/>
-    <link href="css/index.css" rel="stylesheet"/>
+    <link href="css/online.css" rel="stylesheet"/>
     <script src="js/canvas/base.js"></script>
     <script src="js/canvas/thread.js"></script>
     <script src="js/canvas/runsomething.js"></script>
@@ -40,6 +40,7 @@
                     <div class="panel-body" >
                         Parse a traced file: <input type="file" id="traced-file" name="traced-file" />
                         Parse a perf file: <input type="file" id="perf-file" name="perf-file" />
+                        Save canvas: <input type="button" id="save-canvas" name="save-canvas" value="Download"/>
                     </div>
                 </div>
 
@@ -57,7 +58,7 @@
                                 Your browser does not support the HTML5 canvas tag.
                             </canvas>
                             <script>
-                                runChrome();
+                                runOnlyRun();
                             </script>
                         </div>
                     </div>

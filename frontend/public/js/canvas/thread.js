@@ -4,6 +4,7 @@ var filteredThreads = [];
 var filteredPidToIndex = {};
 var initTimeus = 0;
 var usPerPixel = 50000;
+var threadHeight = 30;
 
 var TSTATE = (function() {
      var private = {
@@ -18,7 +19,7 @@ var TSTATE = (function() {
 })();
 var LEFTMOST = 130;
 
-function indexToY(index) { return index * 50 + 50; }
+function indexToY(index) { return index * 40 + 50; }
 function timeToX(timeus) { return (timeus - initTimeus) / usPerPixel + LEFTMOST; }
 
 
@@ -35,7 +36,9 @@ function setInitTime(time) {
 	initTimeus = time;
 	for (var i = 0; i < threads.length; i++) {
 		threads[i].end = initTimeus;
+		threads[i].timeout = false;
 	}
+	clearCanvas();
 	console.log("Set init time ", initTimeus);
 }
 
@@ -53,13 +56,15 @@ function pushFiltedThread(pid) {
 	filteredThreads.push(pid);
 }
 
-function pushThread(pid, name) {
+function pushThread(pid, name, time) {
 	if (hasThread(pid) || hasFilteredThread(pid)) return;
+	if (!time) time = initTimeus;
 	var thread = { 
 		"pid": pid, 
 		"name": name , 
 		"index": threads.length, 
-		"end": initTimeus,
+		"end": time,
+		"timeout": false,
 		"state": TSTATE.v('INIT'),
 		"lastEvent": ""
 	};
@@ -84,6 +89,7 @@ function runTo(pid, timeus) {
 	drawSolidLine(timeToX(thread.end), indexToY(thread.index), timeToX(timeus), indexToY(thread.index) );
 	// console.log(timeToX(thread.end), indexToY(thread.index), timeToX(timeus), indexToY(thread.index) );
 	thread.end = timeus;
+	thread.timeout = false;
 }
 
 function sleepTo(pid, timeus) {
@@ -103,6 +109,7 @@ function timeOutTo(pid, timeus) {
 	// console.log(timeToX(thread.end), indexToY(thread.index), timeToX(timeus), indexToY(thread.index) );
 	drawDownTriangle(timeToX(timeus), indexToY(thread.index) - 7);
 	thread.end = timeus;
+	thread.timeout = true;
 }
 
 function wakeUp(fpid, tpid, timeus) {
@@ -113,11 +120,12 @@ function wakeUp(fpid, tpid, timeus) {
 	if (fromThread != undefined && fromThread.pid == toThread.pid)
 		return;
 	
-	if (timeus - toThread.end > 1000000) {
+	if (timeus - toThread.end > 1000000 || toThread.timeout) {
 		if (fromThread == undefined)
 			drawArrow(timeToX(timeus), indexToY(toThread.index) - 20, timeToX(timeus), indexToY(toThread.index) );
 		else 
 			drawArrow(timeToX(timeus), indexToY(fromThread.index), timeToX(timeus), indexToY(toThread.index) );
+		toThread.timeout = false;
 	}
 }
 
@@ -208,3 +216,91 @@ function initInteraction() {
 		}
 	});
 }
+
+function processEventLine(line, setInitTimeForFirst) {
+		// Matching
+		var argvs = line.split(' ');
+		var timestamp = parseInt(argvs[0]);
+		var tracedEvent = argvs[1];
+		var pid = parseInt(argvs[2]);
+
+		if (setInitTimeForFirst) {
+			setInitTime(Math.floor(timestamp / 5000000) * 5000000);
+		}
+
+		// Skip the nonsense threads
+		switch (tracedEvent) {
+			case "CREATE_WAKEUP":
+			case "ENTER_FUTEX":
+			case "EXIT_FUTEX":
+			case "ENTER_POLL":
+			case "EXIT_POLL":
+			case "SLEEP":
+			case "EXIT":
+			case "NAME_THREAD":
+			case "EXIT_FUTEX_TIMEOUT":
+				if (!hasThread(pid)) 
+					return;
+				break;
+			case "WAKEUP":
+				var tpid = parseInt(argvs[3]);
+				if (!hasThread(tpid)) 
+					return;
+				break;
+			default:
+				console.log("Unknown evnet: " + line);
+				break;
+		}
+
+		switch (tracedEvent) {
+			case "CREATE_WAKEUP":
+				var cpid = parseInt(argvs[3]);
+				pushThread(cpid, "", timestamp);
+				wakeUpNew(pid, cpid, timestamp);
+				break;
+			case "ENTER_FUTEX":
+				var futex = argvs[3];
+				runTo(pid, timestamp);
+				setThreadLastEvent(pid, tracedEvent);
+				break;
+			case "EXIT_FUTEX":
+				sleepTo(pid, timestamp);
+				break;
+			case "EXIT_FUTEX_TIMEOUT":
+				timeOutTo(pid, timestamp);
+				break;
+			case "ENTER_POLL":
+				var poll = argvs[3];
+				runTo(pid, timestamp);
+				setThreadLastEvent(pid, tracedEvent);
+				break;
+			case "EXIT_POLL":
+				sleepTo(pid, timestamp);
+				break;
+			case "WAKEUP":
+				var tpid = parseInt(argvs[3]);
+				var lastThreadEvent = getThreadLastEvent(tpid);
+				if (lastThreadEvent == "ENTER_FUTEX" || lastThreadEvent == "ENTER_POLL") {
+					wakeUp(pid, tpid, timestamp);
+					sleepTo(tpid, timestamp);
+				} else if (lastThreadEvent == "SLEEP") {
+					wakeUp(pid, tpid, timestamp);
+				}
+				break;
+			case "SLEEP":
+				runTo(pid, timestamp);
+				setThreadLastEvent(pid, tracedEvent);
+				break;
+			case "EXIT":
+				exitAt(pid, timestamp);
+				break;
+			case "NAME_THREAD":
+				var threadName = argvs[3];
+				nameThread(pid, threadName, timestamp);
+				break;
+			default:
+				console.log("Unknown evnet: " + line);
+				break;
+		}
+
+	}

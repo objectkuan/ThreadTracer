@@ -56,3 +56,82 @@ function runChrome() {
 	backupCanvas();
 
 }
+
+
+
+// Paper data
+function runSlowUI() {
+	setInitTime(63000000);
+
+	pushThread(14335, "UIThread");
+
+	runTo(14335, 64010000);
+	sleepTo(14335, 78080000);
+	runTo(14335, 79080000);
+	
+	runTo(14338, 100000000);
+
+	backupCanvas();
+
+}
+
+function runSimleDep() {
+	setInitTime(63000000);
+
+	pushThread(2342, "UIThread");
+	pushThread(2343, "Thread 1");
+	pushThread(2344, "Thread 2");
+
+	runTo(2342, 64010000);
+
+	runTo(2343, 67010000);
+
+	runTo(2344, 70010000);
+	sleepTo(2344, 77080000);
+	wakeUp(2344, 2343, 77380000);
+	sleepTo(2343, 77580000);
+	wakeUp(2343, 2342, 77880000);
+
+	sleepTo(2342, 78080000);
+
+	runTo(2344, 100000000);
+	runTo(2342, 100000000);
+	runTo(2343, 100000000);
+
+
+	backupCanvas();
+
+}
+
+function runTimeout() {
+	setInitTime(63000000);
+
+	pushThread(14553, "Thread 1");
+	pushThread(14554, "Thread 2");
+
+	runTo(14553, 64010000);
+	runTo(14554, 64010000);
+
+	timeOutTo(14553, 69010000);
+	timeOutTo(14553, 74010000);
+	
+	wakeUp(14554, 14553, 75010000);
+	sleepTo(14553, 75020000);
+
+	runTo(14554, 100000000);
+	runTo(14553, 100000000);
+
+
+	backupCanvas();
+
+}
+
+function runOnlyRun() {
+	setInitTime(63000000);
+
+	pushThread(8301, "Thread 1");
+	runTo(8301, 100000000);
+
+	backupCanvas();
+
+}
