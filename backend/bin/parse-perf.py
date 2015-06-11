@@ -6,6 +6,7 @@ import operator
 
 fin = sys.argv[1]
 objs = sys.argv[2]
+binfile = sys.argv[3]
 
 # Parsing objects
 valid_objs = ["func", "trace", "corr"]
@@ -15,6 +16,7 @@ objs = [ val for val in objs if val in valid_objs ]
 # Patterns
 pat_event = r"(.*)\s(\d+)\s(\d+)\.(\d+):\s*(\d+)\s[^:]+:"
 pat_function = r"\s*([a-f0-9]*)\s([^\s]*)\s\((.*)\)"
+pat_function = r"\s*([a-f0-9]+)\s(.*)\s\((.*)\)"
 
 # Managing time
 total_times = 0
@@ -36,6 +38,9 @@ interval_stat["trace"] = []
 # Correlation
 last_func = ""
 interval_stat["corr"] = []
+
+skipped_position_keywords = ["vmlinux", "libc", "/usr/bin/bash", "glib", "libdbus", "libgconf", "ld-"]
+skipped_function_keywords = ["[unknown]"]
 
 for line in open(fin):
 	prog = re.compile(pat_event)
@@ -78,9 +83,19 @@ for line in open(fin):
 		function = mat.group(2)
 		position = mat.group(3)
 
-		if not "nautilus" in position:
+		#if not binfile in position:
+		#	continue
+		skipped = False
+		for kw in skipped_position_keywords:
+			if kw in position:
+				skipped = True
+				break
+		for kw in skipped_function_keywords:
+			if kw in function:
+				skipped = True
+				break
+		if skipped:
 			continue
-		
 		# Top of stack
 		if not skipping:
 			func_stat = interval_stat["func"][-1]["list"]

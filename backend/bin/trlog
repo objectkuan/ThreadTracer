@@ -2,4 +2,4 @@
 
 CURDIR=$(cd `dirname $0`; pwd)
 infile="$CURDIR/trace.log"
-./filter /tmp/.traced_pids 2 $infile
+./filter /tmp/trace_result/traced_pids 3 $infile /tmp/biubiu 5000 > /tmp/biubiu/raw.log

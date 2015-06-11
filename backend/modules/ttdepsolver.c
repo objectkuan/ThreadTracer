@@ -47,7 +47,7 @@ poll_event_list_t* find_event_list_by_pollfd(uint64_t pollfd) {
 
 
 void insert_thread_event(thread_event_t* event) {
-	//return;
+	return;
 	uint64_t thread_id;
 	thread_event_list_t* list;
 	// find the thread_id
@@ -108,31 +108,35 @@ void insert_thread_event(thread_event_t* event) {
 			return;
 		}
 	}
+#endif
 	// Skip short time
 	if (!is_event_linkded_list_empty(list->list) &&
 		event->type == THREAD_EXIT_POLL &&
 		event->event.thread_exit_poll.sleep_time < 500000) {
-		assert(list->list->tail->event->type == THREAD_WAKEUP);
-		remove_event_node_from_tail(list->list);
-		list->amount--;
-		assert(list->list->tail->event->type == THREAD_ENTER_POLL);
-		remove_event_node_from_tail(list->list);
-		list->amount--;
+		if (   list->list->tail->event->type == THREAD_WAKEUP
+			&& list->list->tail->prev
+			&& list->list->tail->prev->event->type == THREAD_ENTER_POLL) {
+			remove_event_node_from_tail(list->list);
+			list->amount--;
+			remove_event_node_from_tail(list->list);
+			list->amount--;
+		}
 		return;
 	}
 	if (!is_event_linkded_list_empty(list->list) &&
 		event->type == THREAD_EXIT_FUTEX &&
 		event->event.thread_exit_futex.sleep_time < 500000) {
 		//printf("gigiwxx %" PRId64 "\n", event->event.thread_exit_futex.sleep_time);
-		assert(list->list->tail->event->type == THREAD_WAKEUP);
-		remove_event_node_from_tail(list->list);
-		list->amount--;
-		assert(list->list->tail->event->type == THREAD_ENTER_FUTEX);
-		remove_event_node_from_tail(list->list);
-		list->amount--;
+		if (   list->list->tail->event->type == THREAD_WAKEUP
+			&& list->list->tail->prev
+		    && list->list->tail->prev->event->type == THREAD_ENTER_FUTEX) {
+			remove_event_node_from_tail(list->list);
+			list->amount--;
+			remove_event_node_from_tail(list->list);
+			list->amount--;
+		}
 		return;
 	}
-#endif
 
 	//if (list->amount < MAX_THREAD_EVENTS) {
 		insert_event_node_to_tail(list->list, event);
@@ -144,7 +148,7 @@ void insert_thread_event(thread_event_t* event) {
 }
 
 void insert_futex_event(thread_event_t* event) {
-	//return;
+	return;
 	uint64_t futex;
 	futex_event_list_t* list;
 	// find the thread_id

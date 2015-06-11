@@ -77,4 +77,10 @@ echo $! > $OUTDIR/perf.pid
 echo 1 > $TRACEDIR/tracing_on
 echo 0 > $TRACEDIR/trace
 
+# set cgroup
+if [[ 0 ]]; then
+	cg_cmd="sleep 3 && ./set-cgroup $PID"
+	bash -c "cd $CURDIR && $cg_cmd" &
+fi
+
 exec "$binfile"
