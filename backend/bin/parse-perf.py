@@ -14,7 +14,7 @@ objs = objs.split(',')
 objs = [ val for val in objs if val in valid_objs ]
 
 # Patterns
-pat_event = r"(.*)\s(\d+)\s(\d+)\.(\d+):\s*(\d+)\s[^:]+:"
+pat_event = r"(.*)\s(\d+)\s+(\d+)\.(\d+):\s*(\d+)\s[^:]+:"
 pat_function = r"\s*([a-f0-9]*)\s([^\s]*)\s\((.*)\)"
 pat_function = r"\s*([a-f0-9]+)\s(.*)\s\((.*)\)"
 
